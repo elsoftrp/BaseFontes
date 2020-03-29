@@ -1,0 +1,27 @@
+unit DataEstoque;
+
+interface
+
+uses
+  System.SysUtils, System.Classes;
+
+type
+  TDMEST = class(TDataModule)
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  DMEST: TDMEST;
+
+implementation
+
+{%CLASSGROUP 'Vcl.Controls.TControl'}
+
+uses DataModulo;
+
+{$R *.dfm}
+
+end.

@@ -1,0 +1,591 @@
+unit Menu;
+
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  StdCtrls, Menus, Db, Grids, DBGrids, ExtCtrls, DBCtrls, Buttons,
+  ComCtrls, jpeg, uSeek, Vcl.ImgList, System.Actions, Vcl.ActnList,
+  FireDAC.Comp.Client, FireDAC.Stan.Error;
+
+type
+  TfrmMenu = class(TForm)
+    StatusBar1: TStatusBar;
+    Panel1: TPanel;
+    pnlBar: TPanel;
+    SpeedButton7: TSpeedButton;
+    SpeedButton6: TSpeedButton;
+    ActionList1: TActionList;
+    acLogon: TAction;
+    acSair: TAction;
+    ImageList2: TImageList;
+    ImageList1: TImageList;
+    procedure MyHandler(Sender: TObject);
+    procedure MyMeasureItem(Sender: TMenu; Item: TMenuItem;
+      var Width, Height: integer);
+    procedure FormCreate(Sender: TObject);
+    procedure ErrorMsg(Sender: TObject; E: exception);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure CriaMenu;
+    procedure FormActivate(Sender: TObject);
+    procedure a(Sender: TObject);
+    procedure acLogonExecute(Sender: TObject);
+    procedure acSairExecute(Sender: TObject);
+  private
+    { Private declarations }
+    Primeira:Boolean;
+    MyMainMenu: TMainMenu;
+    vUser:String;
+    vTabela:TFDTable;
+    Prog : string;
+    MyItem: array[0..10] of TMenuItem;
+    MySubItems: array[0..100] of TMenuItem;
+    seek: TSeek;
+    function LocalMenu(vNomeTabela: String): Boolean;
+  public
+    { Public declarations }
+    procedure CadProgramas;
+    procedure LocalizaMenu(vNomeTabela: String);
+  end;
+
+var
+  frmMenu: TfrmMenu;
+
+
+implementation
+
+uses Funcoes, DataModulo, Senha,
+  CadUsuarios,  Setup, uLoadFileIni, uOperacaoBD, uLib, DataReport,
+  ConversorDados, CadCidades,
+
+  CadGrupos, CadProdutos, CadFornecedores, CadClientes, Entradas, CadPedidos,
+  ConsultaMovEstoque, RelProdutos, RelEntradas, RelVendas;
+
+
+
+{$R *.DFM}
+
+procedure TfrmMenu.MyHandler(Sender: TObject);
+var i : integer;
+begin
+  with Sender as TMenuItem do
+    Prog := Trim(UpperCase(Hint));
+  //-------------------------------------------------------
+  if Prog = UpperCase('Cidades') then
+  begin
+    TLib.AbreForm(TfrmCadCidades, frmCadCidades);
+    exit;
+  end;
+  //-------------------------------------------------------
+  if Prog = UpperCase('Usuarios') then
+  begin
+    TLib.AbreForm(TfrmCadUsuarios, frmCadUsuarios);
+    exit;
+  end;
+  //-------------------------------------------------------
+  if Prog = UpperCase('Setup') then
+  begin
+    TLib.AbreForm(TFSetup, FSetup);
+    exit;
+  end;
+  //-------------------------------------------------------
+  if Prog = UpperCase('GeradorRelatorios') then
+  begin
+    DMReport.frxReport1.DesignReport(True, False);
+    exit;
+  end;
+  //-------------------------------------------------------
+  if Prog = UpperCase('Sair') then
+    Close;
+  //------------------------------------------------------
+  if Prog = UpperCase('ConversorDados') then
+  begin
+    TLib.AbreForm(TfrmConversorDados, frmConversorDados);
+    exit;
+  end;
+  //-------------------------------------------------------
+  if Prog = UpperCase('Grupos') then
+  begin
+    TLib.AbreForm(TfrmCadGrupos, frmCadGrupos);
+    exit;
+  end;
+  //-------------------------------------------------------
+  if Prog = UpperCase('CartaoCredito') then
+  begin
+    TLib.AbreForm(TfrmCadCartao, frmCadCartao);
+    exit;
+  end;
+  //-------------------------------------------------------
+  if Prog = UpperCase('Produtos') then
+  begin
+    TLib.AbreForm(TfrmCadProdutos, frmCadProdutos);
+    exit;
+  end;
+  //-------------------------------------------------------
+  if Prog = UpperCase('Fornecedores') then
+  begin
+    TLib.AbreForm(TfrmCadFornecedores, frmCadFornecedores);
+    exit;
+  end;
+  //-------------------------------------------------------
+  if Prog = UpperCase('Clientes') then
+  begin
+    TLib.AbreForm(TfrmCadClientes, frmCadClientes);
+    exit;
+  end;
+  //-------------------------------------------------------
+  if Prog = UpperCase('Entradas') then
+  begin
+    TLib.AbreForm(TfrmEntradas, frmEntradas);
+    exit;
+  end;
+  //-------------------------------------------------------
+  if Prog = UpperCase('Pedidos') then
+  begin
+    TLib.AbreForm(TfrmCadPedidos, frmCadPedidos);
+    exit;
+  end;
+  //-------------------------------------------------------
+  if Prog = UpperCase('ConsultaMovEstoque') then
+  begin
+    TLib.AbreForm(TfrmConsultaMovEstoque, frmConsultaMovEstoque);
+    exit;
+  end;
+  //-------------------------------------------------------
+  if Prog = UpperCase('RelEstoque') then
+  begin
+    TLib.AbreForm(TfrmRelProdutos, frmRelProdutos);
+    exit;
+  end;
+  //-------------------------------------------------------
+  if Prog = UpperCase('RelEntradas') then
+  begin
+    TLib.AbreForm(TfrmRelEntradas, frmRelEntradas);
+    exit;
+  end;
+  //-------------------------------------------------------
+  if Prog = UpperCase('RelVendas') then
+  begin
+    TLib.AbreForm(TfrmRelVendas, frmRelVendas);
+    exit;
+  end;
+  //-------------------------------------------------------
+  if Prog = UpperCase('RelClientes') then
+  begin
+    with DMReport do
+    begin
+      SQLClientes.Open;
+      try
+        frxReport1.LoadFromFile(TLoadFileIni.GetInstance.PathRelat+'\frClientes.fr3');
+        frxReport1.Variables.Clear;
+        frxReport1.ShowReport();
+      finally
+        SQLClientes.Close;
+      end;
+    end;
+    exit;
+  end;
+  //-------------------------------------------------------
+  if Prog = UpperCase('Logon') then
+  begin
+    for i:=frmMenu.MDIChildCount-1 downto 0 do
+       frmMenu.MDIChildren[i].Close;
+    frmMenu.Menu.Free;
+    Application.CreateForm(TFrmSenha, frmSenha);
+    FrmSenha.ShowModal;
+    exit;
+  end;
+end;
+
+procedure TfrmMenu.ErrorMsg(Sender: TObject; E: exception);
+begin
+  if e is EFDException then
+    ShowMessage(e.Message)
+//   TrataErro(e as EUniError)
+  else
+    Application.showException(e);
+end;
+
+procedure TfrmMenu.MyMeasureItem(Sender: TMenu; Item: TMenuItem;
+  var Width, Height: integer);
+begin
+  if Item.Caption <> '-' then Height := 19;
+end;
+
+procedure TfrmMenu.FormCreate(Sender: TObject);
+var s:string;
+begin
+  Primeira := True;
+  Application.OnException:=ErrorMsg;
+  FormatSettings.ShortDateFormat:='dd/mm/yyyy';
+  FormatSettings.CurrencyString := '';
+  FormatSettings.NegCurrFormat := 2;
+  FormatSettings.DecimalSeparator:=',';
+  FormatSettings.ThousandSeparator:='.';
+  //-------------------------------
+  GetDir(0,s); { 0 = Current drive }
+  Height := Screen.Height-25;
+  Width := Screen.Width;
+end;
+
+procedure TfrmMenu.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  if Application.MessageBox('Deseja Realmente Sair do Sistema?',vp, mb_YesNo) = idYes then
+    Application.Terminate
+  else
+    Action := caNone;
+end;
+
+procedure TfrmMenu.CriaMenu;
+var
+  i,s,vS,j: Integer;
+  vMenu,vItem,vSub: string;
+begin
+  MyMainMenu:= TMainMenu.Create(Self);
+  i:=0; s:=0; j:=0;
+  vMenu:=''; vItem:=''; vSub:='';
+  //---------------------------------------
+  DM.Menus.DisableControls;
+  DM.Menus.First;
+  while not DM.Menus.EOF do
+  begin
+    {Criar Menu Principal}
+    if (DM.Menus['Menu']<>vMenu) then
+    begin
+      MyItem[i] := TMenuItem.Create(Self);
+      MyItem[i].Caption:=Copy(DM.Menus['Menu'],4,255);
+      MyItem[i].Tag:=-1; {Não incluir icone no menu principal}
+      try MyItem[i].Hint:=DM.Menus['NomePrograma']; except end;
+      MyMainMenu.Items.Add(MyItem[i]);
+      vMenu:=DM.Menus['Menu'];
+      if Trim(Copy(DM.Menus['Menu'],5,255))='Janela' then
+         j:=i;
+      i:=i+1;
+    end;
+    {Criar Itens}
+    if (DM.Menus['Item']<>vItem) then {Se item for diferente do anterior}
+    begin
+      MySubItems[s] := TMenuItem.Create(Self);
+      MySubItems[s].Caption:=Copy(DM.Menus['Item'],4,255);
+      if (DM.Menus.FieldByName('Subitem').isNull) or
+        (DM.Menus.FieldByName('Subitem').asString='') then
+        MySubItems[s].Name := DM.Menus.FieldByName('NomePrograma').asString;
+      try MySubItems[s].Hint:=DM.Menus['NomePrograma']; except end;
+      if (DM.Menus.FieldByName('Subitem').isNull) or
+        (DM.Menus.FieldByName('Subitem').asString='') then
+      begin
+        MySubItems[s].OnClick := MyHandler;
+      end
+      else
+        MySubItems[s].Tag:=-1; {Se existir subitem não incluir icone}
+      MyMainMenu.Items[i-1].Add(MySubItems[s]);
+      vItem:=DM.Menus['Item'];
+      s:=s+1;
+      {Criar Subitens}
+      if (not DM.Menus.FieldByName('Subitem').isNull) and
+        (Trim(DM.Menus.FieldByName('Subitem').asString)<>'') then
+      begin
+        MySubItems[s] := TMenuItem.Create(Self);
+        MySubItems[s].Caption:=Copy(DM.Menus['Subitem'],4,255);
+        MySubItems[s].Name := DM.Menus['NomePrograma'];
+        try MySubItems[s].Hint:=DM.Menus['NomePrograma']; except end;
+        MySubItems[s].OnClick := MyHandler;
+        MySubItems[s-1].Add(MySubItems[s]);
+        s:=s+1;
+      end;
+     vS:=0;
+    end
+    else
+    begin {Criar Subitem}
+      vS:=vS+1;
+      MySubItems[s] := TMenuItem.Create(Self);
+      MySubItems[s].Caption:=Copy(DM.Menus['Subitem'],4,255);
+      MySubItems[s].Name := DM.Menus['NomePrograma'];
+      try MySubItems[s].Hint:=DM.Menus['NomePrograma']; except end;
+      MySubItems[s].OnClick := MyHandler;
+      MySubItems[s-(vS+1)].Add(MySubItems[s]);
+      s:=s+1;
+    end;
+    DM.Menus.Next;
+  end;
+  DM.Menus.EnableControls;
+  MyItem[i] := TMenuItem.Create(Self);
+  MyItem[i].Caption := '&Sair';
+  MyItem[i].Tag:=-1; {Não incluir icone no menu principal}
+  try MyItem[i].Hint := 'Sair'; except end;
+  MyItem[i].OnClick := MyHandler;
+  MyMainMenu.Items.Add(MyItem[i]);
+  frmmenu.Menu := MyMainMenu;
+end;
+
+procedure TfrmMenu.FormActivate(Sender: TObject);
+begin
+  if Primeira = True then
+  begin
+    Application.CreateForm(TfrmSenha, frmSenha);
+    Primeira := False;
+    frmSenha.ShowModal;
+  end;
+end;
+
+procedure TfrmMenu.a(Sender: TObject);
+begin
+  FrmMenu.StatusBar1.Panels[2].Text := 'Database : '+ TLoadFileIni.GetInstance.DataBaseFile;
+end;
+
+Procedure TfrmMenu.CadProgramas;
+var Prog:array[1..100,1..5] of String;
+   x,y, vContador:Integer;
+   vCodigo:String;
+   Qry: TFDQuery;
+begin
+  y:=1;
+  prog[y,1] := 'Usuarios';
+  prog[y,2] := 'Cadastro de Usuários';
+  prog[y,3] := '90 &Utilitários';
+  prog[y,4] := '10 &Usuários';
+  //
+  y:=y+1;
+  prog[y,1] := 'Setup';
+  prog[y,2] := 'Parametros do Sistema';
+  prog[y,3] := '90 &Utilitários';
+  prog[y,4] := '10 &Parametros';
+  //
+  y:=y+1;
+  prog[y,1] := 'GeradorRelatorios';
+  prog[y,2] := 'Gerador de Relatórios';
+  prog[y,3] := '90 &Utilitários';
+  prog[y,4] := '10 &Gerador de Relatórios';
+  //
+  y:=y+1;
+  prog[y,1] := 'ConversorDados';
+  prog[y,2] := 'Conversor de dados';
+  prog[y,3] := '90 &Utilitários';
+  prog[y,4] := '10 &Conversor de dados';
+  //
+  /////////////////// CADASTROS ////////////////////////////////////////////////
+  y:=y+1;
+  prog[y,1] := 'Clientes';
+  prog[y,2] := 'Cadastro de Clientes';
+  prog[y,3] := '10 &Cadastro';
+  prog[y,4] := '10 &Clientes';
+  //
+  y:=y+1;
+  prog[y,1] := 'Fornecedores';
+  prog[y,2] := 'Cadastro de Fornecedores';
+  prog[y,3] := '10 &Cadastro';
+  prog[y,4] := '99 &Estoque';
+  prog[y,5] := '10 &Fornecedores';
+  //
+  y:=y+1;
+  prog[y,1] := 'Grupos';
+  prog[y,2] := 'Cadastro de Grupos';
+  prog[y,3] := '10 &Cadastro';
+  prog[y,4] := '99 &Estoque';
+  prog[y,5] := '20 &Grupos';
+  //
+  y:=y+1;
+  prog[y,1] := 'CartaoCredito';
+  prog[y,2] := 'Cadastro de Cartão';
+  prog[y,3] := '10 &Cadastro';
+  prog[y,4] := '99 &Manutenção';
+  prog[y,5] := '01 &Cartão';
+  //
+  y:=y+1;
+  prog[y,1] := 'Produtos';
+  prog[y,2] := 'Cadastro de Produtos';
+  prog[y,3] := '10 &Cadastro';
+  prog[y,4] := '99 &Estoque';
+  prog[y,5] := '30 &Produtos';
+  //
+  //
+  ////////////////// Movimentos /////////////////////////
+  //
+  y:=y+1;
+  prog[y,1] := 'Entradas';
+  prog[y,2] := 'Cadastro de Compras e Ajustes';
+  prog[y,3] := '30 &Movimento';
+  prog[y,4] := '20 &Compras e Ajustes';
+  //
+  y:=y+1;
+  prog[y,1] := 'Pedidos';
+  prog[y,2] := 'Cadastro de Vendas';
+  prog[y,3] := '30 &Movimento';
+  prog[y,4] := '10 &Venda';
+  //
+  y:=y+1;
+  prog[y,1] := 'ConsultaMovEstoque';
+  prog[y,2] := 'Consulta Movimentação de Produtos';
+  prog[y,3] := '30 &Movimento';
+  prog[y,4] := '99 &Consulta Movimento Estoque';
+  //
+  ////////////////// Relatorios /////////////////////////
+  y:=y+1;
+  prog[y,1] := 'RelVendas';
+  prog[y,2] := 'Relatório de Vendas';
+  prog[y,3] := '70 &Relatórios';
+  prog[y,4] := '10 &Vendas';
+  //
+  y:=y+1;
+  prog[y,1] := 'RelEstoque';
+  prog[y,2] := 'Relatório de Estoque';
+  prog[y,3] := '70 &Relatórios';
+  prog[y,4] := '20 &Estoque';
+  prog[y,5] := '10 &Produtos';
+  //
+  y:=y+1;
+  prog[y,1] := 'RelEntradas';
+  prog[y,2] := 'Relatório de Compras e Ajustes';
+  prog[y,3] := '70 &Relatórios';
+  prog[y,4] := '20 &Estoque';
+  prog[y,5] := '20 &Compras e Ajustes';
+  //
+  y:=y+1;
+  prog[y,1] := 'RelClientes';
+  prog[y,2] := 'Relatório de Clientes';
+  prog[y,3] := '70 &Relatórios';
+  prog[y,4] := '30 &Cadastros';
+  prog[y,5] := '10 &Clientes';
+  //
+  //
+  ///
+
+  DM.SqlUsuarios.Close;
+  DM.SqlUsuarios.ParamByName('CodUsuario').asString := '1';
+  DM.SqlUsuarios.Prepare;
+  DM.SqlUsuarios.Open;
+  if DM.SqlUsuarios.IsEmpty then
+  begin
+    DM.SqlUsuarios.Append;
+    DM.SqlUsuarios.FieldByName('CodUsuario').asString := '1';
+    DM.SqlUsuarios.FieldByName('Login').asString      := 'EDSON';
+    DM.SqlUsuarios.FieldByName('Senha').asString      := TLib.Criptar('ED');
+    DM.SqlUsuarios.FieldByName('Nome').asString       := 'ADMINISTRADOR';
+    DM.SqlUsuarios.FieldByName('Tipo').asString       := 'P';
+    DM.SqlUsuarios.Post;
+    DM.SqlUsuarios.ApplyUpdates;
+  end;
+  seek := TSeek.Create(nil, DM.DataBase, false);
+  Qry := TFDQuery.Create(nil);
+  try
+    Qry.Connection := DM.Database;
+    for x:= 1 to 100 do
+    begin
+      if Prog[x,1] =  '' then
+        Continue;
+
+      if seek.Seek('Programas',1,['NomePrograma'],[Prog[x,1]]) then
+        vCodigo := seek.Qry.FieldByName('CodPrograma').asString
+      else
+        vCodigo := '0';
+      DM.SqlProgramas.Close;
+      DM.SqlProgramas.ParamByName('CodPrograma').asString := vCodigo;
+      DM.SqlProgramas.OPen;
+      if DM.SqlProgramas.IsEmpty then
+      begin
+        vContador := TOperacaoBD.ContadorDac(DM.Database, 'codprograma');
+        //
+        DM.SqlProgramas.Append;
+        DM.SqlProgramas.FieldByName('CodPrograma').asInteger := vContador;
+        DM.SqlProgramas.FieldByName('NomePrograma').asString := Prog[x,1];
+        DM.SqlProgramas.FieldByName('Descricao').asString    := Prog[x,2];
+        DM.SqlProgramas.FieldByName('Menu').asString         := Prog[x,3];
+        DM.SqlProgramas.FieldByName('Item').asString         := Prog[x,4];
+        DM.SqlProgramas.FieldByName('SubItem').asString      := Prog[x,5];
+      end
+      else
+      begin
+        DM.SqlProgramas.Edit;
+        DM.SqlProgramas.FieldByName('Descricao').asString := Prog[x,2];
+        DM.SqlProgramas.FieldByName('Menu').asString      := Prog[x,3];
+        DM.SqlProgramas.FieldByName('Item').asString      := Prog[x,4];
+        DM.SqlProgramas.FieldByName('SubItem').asString   := Prog[x,5];
+      end;
+      DM.SqlProgramas.Post;
+      DM.SqlProgramas.ApplyUpdates;
+    end;
+  //
+    Qry.Close;
+    Qry.Sql.Clear;
+    Qry.Sql.Add('Select * from Programas');
+    Qry.Prepare;
+    Qry.Open;
+    Qry.First;
+    While not Qry.Eof do
+    begin
+      DM.SQLPU.Close;
+      DM.SQLPU.ParamByName('CodUsuario').AsInteger := 1;
+      DM.SQLPU.ParamByName('CodPrograma').asString := Qry.FieldByName('CodPrograma').asString;
+      DM.SQLPU.Open;
+      if DM.SQLPU.IsEmpty then
+      begin
+        DM.SQLPU.Append;
+        DM.SQLPU.FieldByName('CodUsuario').AsInteger := 1;
+        DM.SQLPU.FieldByName('CodPrograma').asString := Qry.FieldByName('CodPrograma').asString;
+        DM.SQLPU.FieldByName('btnIncluir').AsInteger := 1;
+        DM.SQLPU.FieldByName('btnAlterar').AsInteger := 1;
+        DM.SQLPU.FieldByName('btnExcluir').AsInteger := 1;
+        DM.SQLPU.FieldByName('btnVisualizar').AsInteger := 1;
+        DM.SQLPU.FieldByName('btnImprimir').AsInteger := 1;
+        DM.SQLPU.FieldByName('btnChave1').AsInteger := 0;
+        DM.SQLPU.FieldByName('btnChave2').AsInteger := 0;
+        DM.SQLPU.FieldByName('btnChave3').AsInteger := 0;
+        DM.SQLPU.FieldByName('btnChave4').AsInteger := 0;
+        DM.SQLPU.Post;
+      end
+      else
+      begin
+        DM.SQLPU.Close;
+      end;
+      Qry.Next;
+    end;
+  finally
+    Qry.Close;
+    DM.SQLPU.Close;
+    DM.SQLUsuarios.Close;
+    DM.SQLProgramas.Close;
+    FreeAndNil(Qry);
+    freeandnil(seek);
+  end;
+end;
+
+function TfrmMenu.LocalMenu(vNomeTabela:String):Boolean;
+begin
+  If FindComponent(vNomeTabela) <> nil then
+    Result := True
+  else
+    Result := False;
+end;
+
+procedure TfrmMenu.LocalizaMenu(vNomeTabela:String);
+begin
+  If FindComponent(vNomeTabela) <> nil then
+  begin
+    TMenuItem(FindComponent(vNomeTabela)).Click;
+  end
+  else
+  begin
+    TLib.Mensagem('Aviso','Este cadastro não pode ser aberto pela tela de consulta.','!');
+  end
+end;
+
+procedure TfrmMenu.acLogonExecute(Sender: TObject);
+var
+  i:Integer;
+begin
+  for i:=frmMenu.MDIChildCount-1 downto 0 do
+     frmMenu.MDIChildren[i].Close;
+  frmMenu.Menu.Free;
+  Application.CreateForm(TFrmSenha, frmSenha);
+  frmSenha.ShowModal;
+  exit;
+end;
+
+procedure TfrmMenu.acSairExecute(Sender: TObject);
+begin
+  Close;
+end;
+
+end.
+

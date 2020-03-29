@@ -1,0 +1,48 @@
+unit CadCategorias;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, ModeloDiretoDac, Data.DB,
+  System.Actions, Vcl.ActnList, Vcl.Menus, Vcl.PlatformDefaultStyleActnCtrls,
+  Vcl.ActnPopup, Vcl.ImgList, Vcl.Buttons, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Mask,
+  Vcl.DBCtrls;
+
+type
+  TfrmCadCategorias = class(TfrmModeloDiretoDac)
+    Label1: TLabel;
+    DBEdit1: TDBEdit;
+    Label2: TLabel;
+    DBEdit2: TDBEdit;
+    DBRadioGroup1: TDBRadioGroup;
+    procedure FormShow(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmCadCategorias: TfrmCadCategorias;
+
+implementation
+
+{$R *.dfm}
+
+uses DataModulo;
+
+procedure TfrmCadCategorias.FormShow(Sender: TObject);
+begin
+  FConnection := DM.DataBase;
+  vQuerydac   := DM.SQLCategorias;
+  FCampoChave := 'CodCategoria';
+  FNomeTabela := 'Categorias';
+  VFocoI := DBEdit1;
+  VFocoA := DBEdit1;
+
+  inherited;
+
+end;
+
+end.

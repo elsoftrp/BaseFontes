@@ -1,0 +1,63 @@
+program Vendas;
+
+uses
+  Forms,
+  Menu in 'Telas\Menu.pas' {frmMenu},
+  Senha in 'Telas\Senha.pas' {frmSenha},
+  Splash in 'Telas\Splash.pas' {frmSplash},
+  Funcoes in 'Comum\Funcoes.pas' {F},
+  DataModulo in 'DataModulos\DataModulo.pas' {DM: TDataModule},
+  Localizar in 'Telas\Localizar.pas' {LocalizarForm},
+  CadUsuarios in 'Telas\Utilitarios\CadUsuarios.pas' {frmCadUsuarios},
+  uLoadFileIni in 'Comum\uLoadFileIni.pas',
+  uFormBaseDac in 'Comum\uFormBaseDac.pas',
+  uAcoes in 'Comum\uAcoes.pas',
+  uSeek in 'Comum\uSeek.pas',
+  ModeloDiretoDac in 'Comum\ModeloDiretoDac.pas' {frmModeloDiretoDac},
+  uDireitos in 'Comum\uDireitos.pas',
+  uOperacaoBD in 'Comum\uOperacaoBD.pas',
+  uModelBase in 'Comum\uModelBase.pas' {frmModelBase},
+  ModeloRelNew in 'Comum\ModeloRelNew.pas' {frmModeloRelNew},
+  uLib in 'Comum\uLib.pas',
+  uUsuario in 'Comum\uUsuario.pas',
+  uLocalizar in 'Comum\uLocalizar.pas',
+  DataReport in 'DataModulos\DataReport.pas' {DMReport: TDataModule},
+  ConversorDados in 'Comum\ConversorDados.pas' {frmConversorDados},
+  DataModuloR in 'DataModulos\DataModuloR.pas' {DMR: TDataModule},
+  ModeloItens in 'Comum\ModeloItens.pas' {frmModeloItens},
+  CadCidades in 'Telas\Cadastros\CadCidades.pas' {frmCadCidades},
+  Setup in 'Telas\Utilitarios\Setup.pas' {FSetup},
+  CadGrupos in 'Telas\Cadastros\CadGrupos.pas' {frmCadGrupos},
+  CadProdutos in 'Telas\Cadastros\CadProdutos.pas' {frmCadProdutos},
+  CadFornecedores in 'Telas\Cadastros\CadFornecedores.pas' {frmCadFornecedores},
+  CadClientes in 'Telas\Cadastros\CadClientes.pas' {frmCadClientes},
+  Entradas in 'Telas\Movimentos\Entradas.pas' {frmEntradas},
+  ItensEntradas in 'Telas\Movimentos\ItensEntradas.pas' {frmItensEntradas},
+  EscolheLote in 'Telas\Movimentos\EscolheLote.pas' {frmEscolheLote},
+  CadPedidos in 'Telas\Movimentos\CadPedidos.pas' {frmCadPedidos},
+  ItensPedidos in 'Telas\Movimentos\ItensPedidos.pas' {frmItensPedidos},
+  ConsProduto in 'Telas\Movimentos\ConsProduto.pas' {frmConsProdutos},
+  TotalPedido in 'Telas\Movimentos\TotalPedido.pas' {frmTotalPedido},
+  ConsultaMovEstoque in 'Telas\Movimentos\ConsultaMovEstoque.pas' {frmConsultaMovEstoque},
+  RelProdutos in 'Telas\Relatorios\RelProdutos.pas' {frmRelProdutos},
+  RelEntradas in 'Telas\Relatorios\RelEntradas.pas' {frmRelEntradas},
+  RelVendas in 'Telas\Relatorios\RelVendas.pas' {frmRelVendas},
+  RelClientes in 'Telas\Relatorios\RelClientes.pas' {frmRelClientes},
+  CadCartao in 'Telas\Cadastros\CadCartao.pas' {frmCadCartao};
+
+{$R *.RES}
+
+begin
+//  Application.Initialize;
+  frmSplash:=TfrmSplash.Create(Application);
+  Application.Title := 'Vendas';
+  frmSplash.Show;
+  frmSplash.Update;
+  Application.CreateForm(TfrmMenu, frmMenu);
+  Application.CreateForm(TF, F);
+  Application.CreateForm(TDM, DM);
+  Application.CreateForm(TDMReport, DMReport);
+  Application.CreateForm(TDMR, DMR);
+  frmSplash.Hide;
+  Application.Run;
+end.

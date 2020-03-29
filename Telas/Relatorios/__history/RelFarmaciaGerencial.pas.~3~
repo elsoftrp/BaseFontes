@@ -1,0 +1,87 @@
+unit RelFarmaciaGerencial;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, ModeloRelNew, Menus, ImgList, ActnList, StdCtrls, Buttons, ExtCtrls,
+  Mask, rxToolEdit, System.Actions, uLib, uLoadFileIni;
+
+type
+  TfrmRelFarmaciaGerencial = class(TfrmModeloRelNew)
+    DataIni: TDateEdit;
+    DataFim: TDateEdit;
+    procedure FormShow(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  protected
+    procedure doImprimir; override;
+  end;
+
+var
+  frmRelFarmaciaGerencial: TfrmRelFarmaciaGerencial;
+
+implementation
+
+uses DMCadastro, Funcoes, uDMReport;
+
+{$R *.dfm}
+
+procedure TfrmRelFarmaciaGerencial.doImprimir;
+var
+  vsSql : string;
+begin
+  if DataIni.Text = '  /  /    ' then
+  begin
+    tlib.Mensagem('Aviso','Digite a Data Inicial.','!');
+    DataIni.SetFocus;
+    exit;
+  end;
+  if DataFim.Text = '  /  /    ' then
+  begin
+    tlib.Mensagem('Aviso','Digite a Data Final.','!');
+    DataFim.SetFocus;
+    exit;
+  end;
+  with DMReport do
+  begin
+    try
+      vsSql := 'select i.codproduto, max(pr.despro) as despro, sum(i.quantidade) as qdetotal, '+
+              'avg(i.prvenda) as Mediavenda, avg(i.prcompra) as mediacusto, '+
+              'sum(i.prvenda*i.quantidade) as totvenda, sum(i.quantidade*i.prcompra) as totcusto '+
+              'from pedidos p left outer join itemspedido i on i.codpedido=p.codpedido '+
+              'left outer join produtos pr on pr.codproduto=i.codproduto '+
+              'where 1=1 ';
+
+      vsSql := vsSql+'and p.data >=:DataIni and p.data <=:DataFim ';
+      vsSql := vsSql+'group by i.codproduto order by qdetotal desc, despro ';
+      SQLFarmaciaLucro.Close;
+      SQLFarmaciaLucro.SQL.Clear;
+      SQLFarmaciaLucro.SQL.Add(vsSql);
+
+      SQLFarmaciaLucro.ParamByName('DataIni').asDateTime := DataIni.Date;
+      SQLFarmaciaLucro.ParamByName('DataFim').asDateTime := DataFim.Date;
+
+      SQLFarmaciaLucro.Open;
+      frxReport1.LoadFromFile(F.vPathRelat+'\frRelFarmaciaLucro.fr3');
+      frxReport1.Variables.Clear;
+      frxReport1.Variables['Dataini'] := QuotedStr(Dataini.Text);
+      frxReport1.Variables['Datafim'] := QuotedStr(Datafim.Text);
+      frxReport1.ShowReport();
+    finally
+      SQLFarmaciaLucro.Close;
+    end;
+  end;                
+end;
+
+procedure TfrmRelFarmaciaGerencial.FormShow(Sender: TObject);
+begin
+  FConnection := DC.DataDac;
+  FNomeTabela := 'RelFarmaciaGerencial';
+  inherited;
+
+end;
+
+end.

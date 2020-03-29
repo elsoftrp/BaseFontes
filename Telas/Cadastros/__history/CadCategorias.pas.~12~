@@ -1,0 +1,75 @@
+unit CadCategorias;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, ModeloDiretoDac, Data.DB,
+  System.Actions, Vcl.ActnList, Vcl.Menus, Vcl.PlatformDefaultStyleActnCtrls,
+  Vcl.ActnPopup, Vcl.ImgList, Vcl.Buttons, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Mask,
+  Vcl.DBCtrls;
+
+type
+  TfrmCadCategorias = class(TfrmModeloDiretoDac)
+    Label1: TLabel;
+    DBEdit1: TDBEdit;
+    Label2: TLabel;
+    DBEdit2: TDBEdit;
+    DBRadioGroup1: TDBRadioGroup;
+    DBRadioGroup2: TDBRadioGroup;
+    procedure FormShow(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  protected
+    procedure ComplementoSaidaCampoChave; override;
+    procedure Imprimir;   override;
+  end;
+
+var
+  frmCadCategorias: TfrmCadCategorias;
+
+implementation
+
+{$R *.dfm}
+
+uses DataModulo, DataReport, Funcoes;
+
+procedure TfrmCadCategorias.ComplementoSaidaCampoChave;
+begin
+  vQuerydac.FieldByName('isento').AsString :='N';
+  inherited;
+
+end;
+
+procedure TfrmCadCategorias.FormShow(Sender: TObject);
+begin
+  FConnection := DM.DataBase;
+  vQuerydac   := DM.SQLCategorias;
+  FCampoChave := 'CodCat';
+  FNomeTabela := 'Categorias';
+  FFocoI := DBEdit1;
+  FFocoA := DBEdit1;
+
+  inherited;
+
+end;
+
+procedure TfrmCadCategorias.Imprimir;
+begin
+  with DMReport do
+  begin
+    try
+      SQLTipoUsuario.Open;
+      frxReport1.LoadFromFile(TLoadFileIni.GetInstance.PathRelat+'\frListagemTipoUsuario.fr3');
+      frxReport1.Variables.Clear;
+      frxReport1.ShowReport();
+    finally
+      SQLTipoUsuario.Close;
+    end;
+  end;
+
+end;
+
+end.

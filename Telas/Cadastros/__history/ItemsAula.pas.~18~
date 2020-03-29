@@ -1,0 +1,65 @@
+unit ItemsAula;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, ModeloItens, Vcl.StdCtrls, Vcl.Mask,
+  Vcl.DBCtrls, Vcl.ExtCtrls, Data.DB, Vcl.Menus, Vcl.Buttons;
+
+type
+  TfrmItemsAula = class(TfrmModeloItens)
+    Label2: TLabel;
+    Bevel1: TBevel;
+    DBText1: TDBText;
+    DBEdit2: TDBEdit;
+    procedure DBEdit2Exit(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmItemsAula: TfrmItemsAula;
+
+implementation
+
+{$R *.dfm}
+
+uses DataModulo;
+
+procedure TfrmItemsAula.DBEdit2Exit(Sender: TObject);
+begin
+  if (btnCancelar.Focused) then exit;
+  if (Sender as TDBEdit).Text = '' then
+  begin
+    TLib.Mensagem('Aviso','Informe a Aula.','!');
+    (Sender as TDBEdit).SetFocus;
+    exit;
+  end;
+  if not FSeek.Seek('Aulas',1,['CodAula'],[(Sender as TDBEdit).Text]) then
+  begin
+    TLib.Mensagem('Aviso','Aula não encontrada.','E');
+    (Sender as TDBEdit).SetFocus;
+    exit;
+  end;
+  vQuerySql.FieldByName('DesAula').asString   := FSeek.Qry.FieldByName('DesAula').asString;
+  vQuerySql.FieldByName('Valor').asCurrency   := FSeek.Qry.FieldByName('Valor').asCurrency;
+
+end;
+
+procedure TfrmItemsAula.FormCreate(Sender: TObject);
+begin
+  FConnection := DM.DataBase;
+  vQuerySql   := DM.SqlItemsAula;
+  FFocoA      := DBEdit2;
+  FFocoI      := DBEdit2;
+  vCampoChave := 'CodAluno';
+  vSeq        := 'Seq';
+  inherited;
+
+end;
+
+end.

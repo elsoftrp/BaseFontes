@@ -1,0 +1,378 @@
+unit EntradasFarmacia;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, ModeloDiretoDac, DB, ActnList, Menus, ActnPopup, ImgList, Buttons,
+  StdCtrls, ExtCtrls, Mask, DBCtrls, JvExMask, JvToolEdit, JvDBControls, Grids,
+  DBGrids, uSeek, uAcoes, System.Actions, Vcl.PlatformDefaultStyleActnCtrls,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param, uLib,
+  FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
+  FireDAC.Stan.Async, FireDAC.DApt, FireDAC.Comp.DataSet, FireDAC.Comp.Client;
+
+type
+  TfrmEntradasFarmacia = class(TfrmModeloDiretoDac)
+    Label1: TLabel;
+    DBEdit1: TDBEdit;
+    Label2: TLabel;
+    Label3: TLabel;
+    DBEdit3: TDBEdit;
+    Label4: TLabel;
+    DBEdit4: TDBEdit;
+    Label5: TLabel;
+    Label6: TLabel;
+    DBEdit6: TDBEdit;
+    Label7: TLabel;
+    DBEdit7: TDBEdit;
+    DBEdit2: TJvDBDateEdit;
+    DBEdit5: TJvDBDateEdit;
+    Bevel1: TBevel;
+    Bevel2: TBevel;
+    DBText1: TDBText;
+    DBText4: TDBText;
+    Label9: TLabel;
+    DBRadioGroup1: TDBRadioGroup;
+    Panel2: TPanel;
+    DBGrid1: TDBGrid;
+    Panel5: TPanel;
+    SpeedButton6: TSpeedButton;
+    SpeedButton9: TSpeedButton;
+    SpeedButton10: TSpeedButton;
+    Panel6: TPanel;
+    ActionList2: TActionList;
+    acIncluirI: TAction;
+    acAlterarI: TAction;
+    acExcluirI: TAction;
+    ImageList2: TImageList;
+    DataSource1: TDataSource;
+    Label8: TLabel;
+    DBEdit8: TDBEdit;
+    SpeedButton11: TSpeedButton;
+    Label10: TLabel;
+    DBEdit9: TDBEdit;
+    acConsultarI: TAction;
+    SpeedButton12: TSpeedButton;
+    procedure FormShow(Sender: TObject);
+    procedure acIncluirIExecute(Sender: TObject);
+    procedure acAlterarIExecute(Sender: TObject);
+    procedure acExcluirIExecute(Sender: TObject);
+    procedure DBEdit6Exit(Sender: TObject);
+    procedure acConsultarIExecute(Sender: TObject);
+  private
+    FSeq : Integer;
+    seek: TSeek;
+    vQueryI: TFDQuery;
+    procedure GetIdSeq;
+    procedure doCalculaTotal;
+    procedure doBaixaEstoque;
+    { Private declarations }
+  public
+    { Public declarations }
+  protected
+    procedure LiberarBtn; override;
+    procedure ComplementoSaidaCampoChave; override;
+    procedure ComplementoNaoIncluirSaidaCampoChave; override;
+    procedure doGravaDataSets; override;
+    procedure doFecharDataSets(erro: Boolean = False; cancel: Boolean = False); override;
+    procedure Gravar; override;
+
+  end;
+
+var
+  frmEntradasFarmacia: TfrmEntradasFarmacia;
+
+implementation
+
+uses Funcoes, ItensEntradas, DataModulo;
+
+{$R *.dfm}
+
+procedure TfrmEntradasFarmacia.acAlterarIExecute(Sender: TObject);
+begin
+  frmItensEntradas := TfrmItensEntradas.Create(Self, 0, aAlterar);
+  try
+    vQueryI.Edit;
+    frmItensEntradas.ShowModal;
+  finally
+    frmItensEntradas.Release;
+    doCalculaTotal();
+  end;
+end;
+
+procedure TfrmEntradasFarmacia.acConsultarIExecute(Sender: TObject);
+begin
+  frmItensEntradas := TfrmItensEntradas.Create(Self, 0, aConsultar);
+  try
+    frmItensEntradas.ShowModal;
+  finally
+    frmItensEntradas.Release;
+  end;
+end;
+
+procedure TfrmEntradasFarmacia.acExcluirIExecute(Sender: TObject);
+begin
+  if Application.messagebox('Confirma a EXCLUSÃO deste Item?', vp, mb_yesno) = idyes then
+  begin
+    vQueryI.Delete;
+    doCalculaTotal();
+  end;
+end;
+
+procedure TfrmEntradasFarmacia.acIncluirIExecute(Sender: TObject);
+begin
+  GetIdSeq;
+  vQueryI.Append;
+  vQueryI.FieldByName(FCampoChave).AsInteger  := vQuerydac.FieldByName(FCampoChave).asInteger;
+  vQueryI.FieldByName('motivoperda').AsString := '0';
+  frmItensEntradas := TfrmItensEntradas.Create(Self, FSeq, aIncluir);
+  try
+    frmItensEntradas.ShowModal;
+  finally
+    frmItensEntradas.Release;
+    doCalculaTotal();
+  end;
+end;
+
+procedure TfrmEntradasFarmacia.ComplementoNaoIncluirSaidaCampoChave;
+begin
+  vQueryI.Open;
+  if FAcao in [aAlterar, aBaixar] then
+  begin
+    if vQuerydac.FieldByName('Baixa').AsString = 'B' then
+    begin
+      ulib.Mensagem('Aviso','Movimento já Baixado.','!');
+      VFocoa.SetFocus;
+      Exit;
+    end;
+  end;
+end;
+
+procedure TfrmEntradasFarmacia.ComplementoSaidaCampoChave;
+begin
+  vQuerydac.FieldByName('DataCad').AsDateTime   := Int(FDireitos.DataHoje);
+  vQuerydac.FieldByName('TipoEntrada').AsString := 'CP';
+  vQueryI.Open;
+end;
+
+procedure TfrmEntradasFarmacia.DBEdit6Exit(Sender: TObject);
+begin
+  if (btnCancelar.Focused) then exit;
+  if (Sender as TDBEdit).Text = '' then Exit;
+  seek := TSeek.Create(Sender, FConnection);
+  try
+    if not seek.Seek('Fornecedores',1,['CodFornecedor'],[(Sender as TDBEdit).Text]) then
+    begin
+      ulib.Mensagem('Aviso','Fornecedor não encontrado.','E');
+      (Sender as TDBEdit).SetFocus;
+      exit;
+    end;
+    vQuerydac.FieldByName('NomFor').asString  := seek.Qry.FieldByName('NomFor').asString;
+    vQuerydac.FieldByName('CnpjFor').asString := seek.Qry.FieldByName('CnpjFor').asString;
+  finally
+    FreeAndNil(seek);
+  end;
+end;
+
+procedure TfrmEntradasFarmacia.doBaixaEstoque;
+var
+  qry, qryP: TFDQuery;
+  vsSql, vsSqlP: string;
+begin
+  qry  := TFDQuery.Create(nil);
+  qryP := TFDQuery.Create(nil);
+  try
+    if vQuerydac.FieldByName('TipoEntrada').AsString = 'CP' then
+      vsSqlP := 'update produtos set  Prcompra =:prcompra, PrDesconto =:prdesconto, PrCusto =:prcusto, PrLucro =:prlucro, PrLucroN =:prlucron, PrVendaD =:prvendad, Prvenda =:prvenda, UltCompra =:ultcompra '+
+                'where codproduto =:codproduto '
+    else
+      vsSqlP := 'update produtos set  Prcompra =:prcompra, PrDesconto =:prdesconto, PrCusto =:prcusto, PrLucro =:prlucro, PrLucroN =:prlucron, PrVendaD =:prvendad, Prvenda =:prvenda '+
+                'where codproduto =:codproduto ';
+
+    vsSql  := 'insert into movestoque (codproduto, numerolote, datavencimento, quantidade, prcompra, prvenda, tipo, data, coddoc) values '+
+              '(:codproduto, :numerolote, :datavencimento, :quantidade, :prcompra, :prvenda, :tipo, :data, :coddoc)';
+    qry.Connection  := FConnection;
+    qryP.Connection := FConnection;
+
+    qryP.SQL.Clear;
+    qryP.SQL.Add(vsSqlP);
+
+    qry.SQL.clear;
+    qry.SQL.Add(vsSql);
+
+    vQueryI.First;
+    while not vQueryI.Eof do
+    begin
+      qryP.ParamByName('codproduto').AsInteger  := vQueryI.FieldByName('codproduto').AsInteger;
+      qryP.ParamByName('prcompra').AsCurrency   := vQueryI.FieldByName('prcompra').AsCurrency;
+      qryP.ParamByName('prdesconto').AsCurrency := vQueryI.FieldByName('perdesconto').AsCurrency;
+      qryP.ParamByName('prcusto').AsCurrency    := vQueryI.FieldByName('prcusto').AsCurrency;
+      qryP.ParamByName('prlucro').AsCurrency    := vQueryI.FieldByName('perlucro').AsCurrency;
+      qryP.ParamByName('prlucron').AsCurrency   := vQueryI.FieldByName('perlucron').AsCurrency;
+      qryP.ParamByName('prvendad').AsCurrency   := vQueryI.FieldByName('prvendad').AsCurrency;
+      qryP.ParamByName('prvenda').AsCurrency    := vQueryI.FieldByName('prvenda').AsCurrency;
+      //
+      qry.ParamByName('codproduto').AsInteger  := vQueryI.FieldByName('codproduto').AsInteger;
+      qry.ParamByName('numerolote').AsString   := vQueryI.FieldByName('numerolote').AsString;
+      qry.ParamByName('datavencimento').AsDateTime  := vQueryI.FieldByName('datavencimento').AsDateTime;
+      qry.ParamByName('quantidade').AsCurrency := vQueryI.FieldByName('qde').AsCurrency;
+      qry.ParamByName('prcompra').AsCurrency   := vQueryI.FieldByName('valor').AsCurrency;
+      qry.ParamByName('prvenda').AsCurrency    := vQueryI.FieldByName('prvenda').AsCurrency;
+      qry.ParamByName('data').AsDateTime       := vQuerydac.FieldByName('DataBaixa').AsDateTime;
+      qry.ParamByName('coddoc').AsInteger      := vQuerydac.FieldByName(vCampoChave).AsInteger;
+      if vQuerydac.FieldByName('TipoEntrada').AsString = 'CP' then
+      begin
+        qry.ParamByName('tipo').AsString          := 'E';
+        qryP.ParamByName('ultcompra').AsDateTime  := vQuerydac.FieldByName('DataBaixa').AsDateTime;
+      end
+      else if vQuerydac.FieldByName('TipoEntrada').AsString = 'AE' then
+      begin
+        qry.ParamByName('tipo').AsString         := 'E';
+      end
+      else if vQuerydac.FieldByName('TipoEntrada').AsString = 'AS' then
+      begin
+        qry.ParamByName('tipo').AsString         := 'S';
+      end;
+
+      qry.ExecSQL;
+      qryP.ExecSQL;
+
+      vQueryI.Next;
+    end;
+  finally
+    FreeAndNil(qry);
+    FreeAndNil(qryP);
+  end;
+end;
+
+procedure TfrmEntradasFarmacia.doCalculaTotal;
+var
+  seek: TSeek;
+  ponteiro: TBookmarkStr;
+begin
+  if vQueryI.RecordCount > 0 then
+  begin
+    seek := TSeek.Create(nil, FConnection, False);
+    try
+      vQuerydac.FieldByName('TotalProduto').AsCurrency := 0;
+      ponteiro := vQueryI.Bookmark;
+      vQueryI.First;
+      while not vQueryI.Eof do
+      begin
+        vQuerydac.FieldByName('TotalProduto').AsCurrency := (vQuerydac.FieldByName('TotalProduto').AsCurrency+vQueryI.FieldByName('Total').AsCurrency);
+        vQueryI.Next;
+      end;
+      vQueryI.Bookmark := ponteiro;
+    finally
+      FreeAndNil(seek);
+    end;
+  end;
+end;
+
+procedure TfrmEntradasFarmacia.doFecharDataSets(erro: Boolean = False; cancel: Boolean = False);
+begin
+  if erro then
+  begin
+    vQueryI.Cancel;
+  end;
+  if (not cancel) and (FAcao in [aIncluir, aAlterar, aBaixar]) then
+  begin
+    vQueryI.CommitUpdates;
+  end;
+  vQueryI.Close;
+end;
+
+procedure TfrmEntradasFarmacia.doGravaDataSets;
+begin
+  if FAcao = aBaixar then
+  begin
+    doBaixaEstoque;
+  end;
+  if FAcao in[aIncluir, aAlterar, aBaixar] then
+  begin
+    vQueryI.ApplyUpdates;
+  end
+  else if FAcao = aExcluir then
+  begin
+    vQueryI.First;
+    while not vQueryI.Eof do
+    begin
+      vQueryI.Delete;
+    end;
+    vQueryI.ApplyUpdates;
+  end;
+end;
+
+procedure TfrmEntradasFarmacia.GetIdSeq;
+begin
+  if not vQueryI.IsEmpty then
+  begin
+    vQueryI.First;
+    vQueryI.Last;
+    FSeq := vQueryI.FieldByName('Seq').AsInteger+1;
+  end
+  else
+    FSeq := 1;
+end;
+
+procedure TfrmEntradasFarmacia.FormShow(Sender: TObject);
+begin
+  FConnection := DM.DataBase;
+  vQuerydac   := DM.SQLEntradas;
+  vQueryI     := DM.SQLItensEntradas;
+  FNomeTabela := 'Entradas';
+  FCampoChave := 'CodEntrada';
+  FFocoI := DBEdit1;
+  FFocoA := DBEdit1;
+
+  inherited;
+
+end;
+
+procedure TfrmEntradasFarmacia.Gravar;
+begin
+  if FAcao in [aIncluir,aAlterar] then
+  begin
+    if vQuerydac.FieldByName('TotalNota').AsCurrency <> vQuerydac.FieldByName('TotalProduto').AsCurrency then
+    begin
+      ulib.Mensagem('Aviso','Valor da nota não confere com o total de produtos lançados.','!');
+      DBEdit7.SetFocus;
+      Exit;
+    end;
+  end;
+  if FAcao = aBaixar then
+  begin
+    vQuerydac.FieldByName('Baixa').AsString := 'B';
+    vQuerydac.FieldByName('DataBaixa').AsDateTime := Int(FDireitos.DataHoje);
+  end;
+  inherited;
+
+end;
+
+procedure TfrmEntradasFarmacia.LiberarBtn;
+begin
+  if (vQuerydac.State = DsEdit) or (vQuerydac.State = DsInsert) then
+  begin
+    if FAcao in[aIncluir, aAlterar]  then
+    begin
+      acIncluirI.Enabled   := FDireitos.Incluir;
+      acAlterarI.Enabled   := FDireitos.Alterar;
+      acExcluirI.Enabled   := FDireitos.Alterar;
+      acConsultarI.Enabled := FDireitos.Visualizar;
+    end;
+    if FAcao = aBaixar then
+    begin
+      acConsultarI.Enabled := FDireitos.Visualizar;
+    end;
+  end
+  else
+  begin
+    acIncluirI.Enabled   := False;
+    acAlterarI.Enabled   := False;
+    acExcluirI.Enabled   := False;
+    acConsultarI.Enabled := False;
+  end;
+  inherited;
+end;
+
+end.

@@ -1,0 +1,75 @@
+unit Splash;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  ExtCtrls, jpeg ,IniFiles, Registry;
+
+type
+  TfrmSplash = class(TForm)
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormHide(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmSplash: TfrmSplash;
+
+implementation
+
+uses Funcoes, DataModulo, uLoadFileIni;
+
+{$R *.DFM}
+
+procedure TfrmSplash.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Release;
+end;
+
+procedure TfrmSplash.FormHide(Sender: TObject);
+var vPath:String;
+begin
+  vPath := ExtractFilePath(Application.ExeName);
+  vPath := vPath+'Academia.ini';
+  if not FileExists(vPath) then
+  begin
+    ShowMessage('Criar arquivo '+vPath);
+    Application.Terminate;
+    exit;
+  end;
+  try
+    TLoadFileIni.GetInstance.ReadIni('Academia.ini');
+    DM.DataBase.Connected := False;
+    DM.DataBase.Params.Values['Server']   := TLoadFileIni.GetInstance.Server;
+    DM.DataBase.Params.Values['Database'] := TLoadFileIni.GetInstance.DataBaseFile;
+    DM.DataBase.Params.Values['Username'] := 'sysdba';
+    DM.DataBase.Params.Values['Password'] := 'masterkey';
+    DM.DataBase.Connected := True;
+  except
+    Application.Terminate;
+    raise;
+  end;
+end;
+
+procedure TfrmSplash.FormCreate(Sender: TObject);
+var ArqIni:TIniFile;
+    vPath:String;
+begin
+  vPath := ExtractFilePath(Application.ExeName);
+  vPath := vPath+'Academia.ini';
+  if not FileExists(vPath) then
+  begin
+    ShowMessage('Criar arquivo '+vPath);
+    Application.Terminate;
+    exit;
+  end;
+  ArqIni:=TIniFile.Create(vPath);
+  ArqIni.Free;
+end;
+
+end.

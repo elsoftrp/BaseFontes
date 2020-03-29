@@ -1,0 +1,44 @@
+unit ItensLabBloq;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, ModeloItens, Data.DB, Vcl.Menus,
+  Vcl.StdCtrls, Vcl.Buttons, Vcl.ExtCtrls, Vcl.Mask, Vcl.DBCtrls;
+
+type
+  TfrmItensLabBloq = class(TfrmModeloItens)
+    DBEdit1: TDBEdit;
+    Label2: TLabel;
+    Bevel1: TBevel;
+    DBText1: TDBText;
+    procedure FormCreate(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmItensLabBloq: TfrmItensLabBloq;
+
+implementation
+
+{$R *.dfm}
+
+uses DataModulo;
+
+procedure TfrmItensLabBloq.FormCreate(Sender: TObject);
+begin
+  FConnection := DM.DataBase;
+  vQuerySql   := DM.SQLCliLabBloq;
+  FFocoA      := ;
+  //FFocoI := ;
+  //vCampoChave := '';
+  //vSeq := '';
+  inherited;
+
+end;
+
+end.

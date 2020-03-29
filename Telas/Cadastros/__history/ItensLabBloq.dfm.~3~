@@ -1,0 +1,44 @@
+inherited frmItensLabBloq: TfrmItensLabBloq
+  Caption = 'frmItensLabBloq'
+  PixelsPerInch = 96
+  TextHeight = 13
+  inherited Panel1: TPanel
+    object Label1: TLabel
+      Left = 96
+      Top = 32
+      Width = 40
+      Height = 13
+      Caption = 'CODLAB'
+      FocusControl = DBEdit1
+    end
+    object Label2: TLabel
+      Left = 96
+      Top = 72
+      Width = 41
+      Height = 13
+      Caption = 'NOMLAB'
+      FocusControl = DBEdit2
+    end
+    object DBEdit1: TDBEdit
+      Left = 144
+      Top = 32
+      Width = 134
+      Height = 21
+      DataField = 'CODLAB'
+      DataSource = DataSource1
+      TabOrder = 0
+    end
+    object DBEdit2: TDBEdit
+      Left = 144
+      Top = 72
+      Width = 654
+      Height = 21
+      DataField = 'NOMLAB'
+      DataSource = DataSource1
+      TabOrder = 1
+    end
+  end
+  inherited DataSource1: TDataSource
+    DataSet = DM.SQLCliLabBloq
+  end
+end

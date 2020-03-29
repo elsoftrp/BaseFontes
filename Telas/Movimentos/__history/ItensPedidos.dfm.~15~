@@ -1,0 +1,327 @@
+object frmItensPedidos: TfrmItensPedidos
+  Left = 438
+  Top = 117
+  BorderIcons = []
+  BorderStyle = bsSingle
+  Caption = 'Itens do Pedido'
+  ClientHeight = 281
+  ClientWidth = 607
+  Color = clBtnFace
+  Font.Charset = ANSI_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  KeyPreview = True
+  OldCreateOrder = True
+  PopupMenu = PopupMenu1
+  Position = poScreenCenter
+  OnKeyPress = FormKeyPress
+  OnShow = FormShow
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 607
+    Height = 240
+    Align = alClient
+    TabOrder = 0
+    ExplicitHeight = 166
+    object Bevel1: TBevel
+      Left = 219
+      Top = 48
+      Width = 311
+      Height = 21
+    end
+    object Label3: TLabel
+      Left = 27
+      Top = 48
+      Width = 38
+      Height = 13
+      Alignment = taRightJustify
+      Caption = 'Produto'
+      FocusControl = DBEdit3
+    end
+    object Label4: TLabel
+      Left = 14
+      Top = 72
+      Width = 51
+      Height = 13
+      Alignment = taRightJustify
+      Caption = 'Pr.Unit'#225'rio'
+    end
+    object Label6: TLabel
+      Left = 9
+      Top = 96
+      Width = 56
+      Height = 13
+      Alignment = taRightJustify
+      Caption = 'Quantidade'
+    end
+    object Label7: TLabel
+      Left = 27
+      Top = 192
+      Width = 38
+      Height = 13
+      Alignment = taRightJustify
+      Caption = 'Pr.Total'
+    end
+    object DBText1: TDBText
+      Left = 223
+      Top = 51
+      Width = 304
+      Height = 13
+      DataField = 'DESPRO'
+      DataSource = DataSource1
+    end
+    object Label1: TLabel
+      Left = 195
+      Top = 96
+      Width = 21
+      Height = 13
+      Alignment = taRightJustify
+      Caption = 'Lote'
+    end
+    object Bevel2: TBevel
+      Left = 219
+      Top = 96
+      Width = 117
+      Height = 21
+    end
+    object DBText2: TDBText
+      Left = 222
+      Top = 99
+      Width = 109
+      Height = 15
+      DataField = 'NUMEROLOTE'
+      DataSource = DataSource1
+    end
+    object Label2: TLabel
+      Left = 354
+      Top = 96
+      Width = 55
+      Height = 13
+      Alignment = taRightJustify
+      Caption = 'Vencimento'
+    end
+    object Bevel3: TBevel
+      Left = 412
+      Top = 96
+      Width = 117
+      Height = 21
+    end
+    object DBText3: TDBText
+      Left = 416
+      Top = 99
+      Width = 109
+      Height = 15
+      DataField = 'DATAVENCIMENTO'
+      DataSource = DataSource1
+    end
+    object Bevel4: TBevel
+      Left = 533
+      Top = 48
+      Width = 66
+      Height = 21
+    end
+    object DBText4: TDBText
+      Left = 538
+      Top = 52
+      Width = 57
+      Height = 14
+      DataField = 'CODPRO'
+      DataSource = DataSource1
+    end
+    object Label5: TLabel
+      Left = 171
+      Top = 144
+      Width = 54
+      Height = 13
+      Alignment = taRightJustify
+      Caption = 'Desconto $'
+    end
+    object Label8: TLabel
+      Left = 6
+      Top = 144
+      Width = 59
+      Height = 13
+      Alignment = taRightJustify
+      Caption = 'Desconto %'
+    end
+    object DBEdit3: TDBEdit
+      Left = 72
+      Top = 48
+      Width = 145
+      Height = 21
+      DataField = 'CODEAN'
+      DataSource = DataSource1
+      TabOrder = 0
+      OnExit = DBEdit3Exit
+    end
+    object qde: TDBEdit
+      Left = 72
+      Top = 96
+      Width = 65
+      Height = 21
+      DataField = 'QUANTIDADE'
+      DataSource = DataSource1
+      TabOrder = 2
+      OnExit = qdeExit
+    end
+    object prtotal: TDBEdit
+      Left = 72
+      Top = 192
+      Width = 80
+      Height = 21
+      TabStop = False
+      DataField = 'PRTOTAL'
+      DataSource = DataSource1
+      ReadOnly = True
+      TabOrder = 3
+    end
+    object prunitario: TDBEdit
+      Left = 72
+      Top = 72
+      Width = 80
+      Height = 21
+      TabStop = False
+      DataField = 'PRVENDA'
+      DataSource = DataSource1
+      ReadOnly = True
+      TabOrder = 1
+    end
+    object desconto: TDBEdit
+      Left = 232
+      Top = 144
+      Width = 80
+      Height = 21
+      TabStop = False
+      DataField = 'DESCONTO'
+      DataSource = DataSource1
+      ReadOnly = True
+      TabOrder = 4
+    end
+    object DBEdit1: TDBEdit
+      Left = 72
+      Top = 144
+      Width = 80
+      Height = 21
+      TabStop = False
+      DataField = 'DESCONTO'
+      DataSource = DataSource1
+      ReadOnly = True
+      TabOrder = 5
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Top = 240
+    Width = 607
+    Height = 41
+    Align = alBottom
+    TabOrder = 1
+    ExplicitTop = 166
+    object BtnOk: TBitBtn
+      Left = 112
+      Top = 8
+      Width = 91
+      Height = 27
+      Cursor = crHandPoint
+      Caption = '&OK'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      Glyph.Data = {
+        36030000424D3603000000000000360000002800000010000000100000000100
+        18000000000000030000120B0000120B00000000000000000000C8D0D4C8D0D4
+        C8D0D4C8D0D4C8D0D470B5822F983D228B2A1F85332D963B70BF76C8D1D4C8D0
+        D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4A8C4AF208237047F290F822503
+        760900760A067A1B0472203D8452B2C7BBC8D0D4C8D0D4C8D0D4C8D0D4C8D0D4
+        8DB396309F3A009A05008A0A008C1900981C019C1502861C007B1A00790F2E7F
+        3AAFBEB5C8D0D4C8D0D4C8D0D4A1C7B0198F2D00911002980F009E0E008F0E04
+        8F2700980F01941C028C16009415007D0E2D793FAFC4B8C8D0D4C7D2D3479253
+        00910C03A81D00A224069A2852B762C5F4C324A54400901500970F008A0B0091
+        1B007C1040874CC9D3D37BB57B22822E0AAE2A00B31004A52784C893F8FFF9FB
+        FFF7C4F3C534AA4B009E1D00971B008E140085060B7F1C6FB5803B993A0F9328
+        00A82512BD399CF2A4FFFFF8FFF5FFE8FFFCFFFFF9A8DFB2259E43009418009F
+        18008A0C08821E298E43009B1805BC2614AC2AACF2B3FFFFF9F3F7F2D4F2DFB9
+        E6CCFFFAFFFFFFFCA4DFA512A72800A51000972200771C178428198C2503BE22
+        00CB1722BE42CFFFCEA2FAB813C0460BC928BBF5D8FFF9FFFFF4FA84DB9700AA
+        29009212068B2406822635A23C00BB2900D22A19C6342DC74204BE2800D42B00
+        D32414B743C8FFD7FFFBFFFDFFFF60BD7A12AC2F00890C399A3A77C27600B02A
+        00D42400CF1900DD2200E32300D41B00D32800D61D31C74CE6FFE6FFF9FFA2DA
+        A9009614249A33AEC8B1C9D1D430A74E00CE1500E51C00D92008D6290DD02C04
+        CF3200CE1710C32A5BD2698EE38F29A6390098162E914AC8D0D4C8D0D4AACAB5
+        19B13600D82814E23000CD1702DE2C00CA290CCE2700C42400C31C00C71600B0
+        14279A4BABCABDC8D0D4C8D0D4C8D0D499C2A824A84A10CF2800E81500EA1B00
+        D22500D12900C22400C62100BD14249E3A9CBDAAC8D0D4C8D0D4C8D0D4C8D0D4
+        C8D0D4A0C3B23CA3540FC12009D12605C73400CB2D0BBE3310A3304A9F62A7C5
+        B4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C6D4D477BE7C40A04200
+        9A3104A5212AA73378C17BC8D1D4C8D0D4C8D0D4C8D0D4C8D0D4}
+      ParentFont = False
+      TabOrder = 0
+      OnClick = BtnOkClick
+    end
+    object BtnCancelar: TBitBtn
+      Left = 280
+      Top = 8
+      Width = 91
+      Height = 27
+      Cursor = crHandPoint
+      Cancel = True
+      Caption = '&Cancelar'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      Glyph.Data = {
+        36030000424D3603000000000000360000002800000010000000100000000100
+        18000000000000030000120B0000120B00000000000000000000C8D0D4C8D0D4
+        C8D0D4C8D0D4C8D0D47877C13737C70B1AB01416B0343CB86E77D1CBD1E4C8D0
+        D4C8D0D4C8D0D4C9D1D5C8D0D4C8D0D4C8D0D4AEB2D52A22A6090CAB0000B300
+        06BB0000AC0000980E0CA20E00A38787DBCBD4D8C9D0D5C8D0D4C8D0D4C8D0D4
+        8383CB221CC60000CC0000E90000D20000CE0000D30B03C50B00C500009C0000
+        A44646D0CBD3D7C8D0D4C8D0D4ACB1D61E1DCA0702DF6670FA787FFE0700D500
+        00EE0000E40800CA7872E1676FC801069F00009F9396D7C8D0D4C9D0D6271DD3
+        0000E56078F4EDFAFFFDFEFC7E7AEB0502F20400DB797DE6F2FEFEF3FEFF6F79
+        CD00009D1607A9CBD2DF6766CD1113E3050DFF778CFFFDFDFFFFFFF4F4F7FF75
+        82F67F7EF6ECFCFFF9FFF1F1FFF97A78DC0500BB0D0BA0636BC93437C10E11DE
+        1520FE1F17F09A8BFFFFFAFFF8F3FFF1FFFDFFFEFFF8F5FFECFFFF7D86E00D01
+        C50702BC00009E2F34B91811CE2721F41D1EF82525FF372FF8979CEBFDFFF1FF
+        F0FFFFFEF0FFFFFE8286EF070AD00000D80000C50102B00D0CB00A19BC302FFB
+        2622FD3837FF3731FC8C92F5F6FFFBFFF5FFFFF9FFECF7FF7178F70500E50000
+        E60001B90009A5040CB7232DD82B2BF54645FF3C31E59694F8F1FFFFF0F3F8FF
+        FFF5F8FFF4FDFAFFFAFFFF8581E00C00D20000D00000AA3234BE6476E13439DB
+        4A43FFA4A8FBFAFFFFFFFFF4F8FFFEA59AFF8794E0FDFCFFFFFEF8FFFFFE7980
+        ED0000D30C0CAC7A78C4C8D0D65952CB524EFBA5B0FFEBF8F6FBFFF4A9A4FF3F
+        2AFF3330F7958CFAF4EEFFEDF1FF7380EE0000BE362BAFC8D0D4C8D0D4B0AFDB
+        6A63E66261FFA8B8FBAAB0FD463DF22F33FF1A18FF1F1FE77E96FF6E83FC0D06
+        D92122C0ADAFD8C8D0D4C8D0D4C8D0D47F7FCE6D6CDC5750F7513EFF3E3DFF20
+        32F11F20FF0D1CF40004FF0000DF3632CD8F8DCFC8D0D4C8D0D4C8D0D4C8D0D4
+        C8D0D4A9AAD45040C5483FEA302CF72833EF2020EE0406DC3E3EE22D22CCAFB3
+        D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D47077CC3135D012
+        16C9140ED93435CBAAB1D1C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4}
+      ParentFont = False
+      TabOrder = 1
+      OnClick = BtnCancelarClick
+    end
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 249
+    Top = 17
+    object Localizar1: TMenuItem
+      Caption = 'Localizar'
+      ShortCut = 121
+      OnClick = Localizar1Click
+    end
+  end
+  object DataSource1: TDataSource
+    DataSet = DM.SQLItensPedidos
+    Left = 368
+    Top = 16
+  end
+end

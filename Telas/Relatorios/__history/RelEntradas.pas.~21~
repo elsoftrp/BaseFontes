@@ -1,0 +1,227 @@
+unit RelEntradas;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, ModeloRelNew, Menus, ImgList, ActnList, StdCtrls, Buttons, ExtCtrls,
+  Mask, JvExMask, JvToolEdit, uSeek, System.Actions, uLib, uLoadFileIni;
+
+type
+  TfrmRelEntradas = class(TfrmModeloRelNew)
+    Label1: TLabel;
+    Label2: TLabel;
+    DataFim: TJvDateEdit;
+    DataIni: TJvDateEdit;
+    Bevel1: TBevel;
+    Label3: TLabel;
+    lblFornecedor: TLabel;
+    CodFor: TEdit;
+    rgTipoMov: TRadioGroup;
+    rgTipoRel: TRadioGroup;
+    Bevel2: TBevel;
+    lblproduto: TLabel;
+    CodPro: TEdit;
+    Label4: TLabel;
+    rgSituacao: TRadioGroup;
+    procedure FormShow(Sender: TObject);
+    procedure CodForExit(Sender: TObject);
+    procedure CodProExit(Sender: TObject);
+    procedure rgTipoRelClick(Sender: TObject);
+  private
+    { Private declarations }
+    procedure ImpResumido;
+    procedure ImpDetalhado;
+  public
+    { Public declarations }
+  protected
+    procedure doImprimir; override;
+  end;
+
+var
+  frmRelEntradas: TfrmRelEntradas;
+
+implementation
+
+uses Funcoes, DataReport, DataModulo;
+
+{$R *.dfm}
+
+procedure TfrmRelEntradas.CodForExit(Sender: TObject);
+begin
+  if btnFechar.Focused then exit;
+  if (Sender as TEdit).Text = '' then begin  lblFornecedor.Caption := ' '; exit; end;
+  if not Fseek.Seek('Fornecedores',1,['CodFor'],[(Sender as TEdit).Text]) then
+  begin
+    TLib.Mensagem('Aviso','Fornecedor não encontrado.','!');
+    (Sender as TEdit).SetFocus;
+    exit;
+  end;
+  lblFornecedor.Caption := Fseek.Qry.FieldByName('NomFor').asString;
+end;
+
+procedure TfrmRelEntradas.CodProExit(Sender: TObject);
+begin
+  if btnFechar.Focused then exit;
+  if (Sender as TEdit).Text = '' then begin  lblproduto.Caption := ' '; exit; end;
+  if not Fseek.Seek('Produtos',1,['CodPro'],[(Sender as TEdit).Text]) then
+  begin
+    TLib.Mensagem('Aviso','Produto não encontrado.','!');
+    (Sender as TEdit).SetFocus;
+    exit;
+  end;
+  lblproduto.Caption := Fseek.Qry.FieldByName('despro').asString;
+end;
+
+procedure TfrmRelEntradas.doImprimir;
+begin
+  if DataIni.Text = '  /  /    ' then
+  begin
+    TLib.Mensagem('Aviso','Data Inicial tem que ser informada.','!');
+    DataIni.Setfocus;
+    exit;
+  end;
+  if DataFim.Text = '  /  /    ' then
+  begin
+    TLib.Mensagem('Aviso','Data Final tem que ser informada.','!');
+    DataFim.Setfocus;
+    exit;
+  end;
+  if rgTipoRel.ItemIndex = 0 then
+  begin
+    ImpResumido;
+  end
+  else if rgTipoRel.ItemIndex = 1 then
+  begin
+    ImpDetalhado;
+  end;
+
+end;
+
+procedure TfrmRelEntradas.FormShow(Sender: TObject);
+begin
+  FNomeTabela := 'RelEntradasFarmacia';
+  FConnection := DM.Database;
+  inherited;
+
+end;
+
+procedure TfrmRelEntradas.ImpResumido;
+var
+  vsSql: string;
+begin
+  with DMReport do
+  begin
+    try
+      vsSql := 'select e.*, f.fantasiafor, f.nomfor, f.cnpjfor from entradas e '+
+               'left outer join fornecedores f on f.codfor=e.codfor '+
+               'where e.datacad >=:dataini and e.datacad <=:datafim ';
+      if rgTipoMov.ItemIndex = 0 then
+        vsSql := vsSql + ' and e.tipoentrada = '+QuotedStr('CP')+' '
+      else if rgTipoMov.ItemIndex = 1 then
+        vsSql := vsSql + ' and e.tipoentrada = '+QuotedStr('AE')+' '
+      else if rgTipoMov.ItemIndex = 2 then
+        vsSql := vsSql + ' and e.tipoentrada = '+QuotedStr('AS')+' ';
+
+      if rgSituacao.ItemIndex = 1 then
+        vsSql := vsSql + ' and e.databaixa is not null '
+      else if rgSituacao.ItemIndex = 2 then
+        vsSql := vsSql + ' and e.databaixa is null ';
+        
+      if CodFor.Text <> '' then
+        vsSql := vsSql + 'and e.CodFor =:CodFor ';
+      vsSql := vsSql + 'order by e.datacad, e.codentrada ';
+      SQLRelEntradasResumido.Close;
+      SQLRelEntradasResumido.SQL.Clear;
+      SQLRelEntradasResumido.SQL.Add(vsSql);
+      SQLRelEntradasResumido.ParamByName('dataini').AsDateTime := Dataini.Date;
+      SQLRelEntradasResumido.ParamByName('datafim').AsDateTime := Datafim.Date;
+      if CodFor.Text <> '' then
+        SQLRelEntradasResumido.ParamByName('CodFor').AsInteger := StrToInt(CodFor.Text);
+      SQLRelEntradasResumido.Open;
+      frxReport1.LoadFromFile(TLoadFileIni.GetInstance.PathRelat+'\frEntradasResumido.fr3');
+      frxReport1.Variables.Clear;
+      frxReport1.Variables['dataini'] := QuotedStr(Dataini.Text);
+      frxReport1.Variables['datafim'] := QuotedStr(Datafim.Text);
+      if rgTipoMov.ItemIndex = 0 then
+        frxReport1.Variables['titulo']  := QuotedStr('Compras')
+      else if rgTipoMov.ItemIndex = 1 then
+        frxReport1.Variables['titulo']  := QuotedStr('Ajuste entrada')
+      else if rgTipoMov.ItemIndex = 2 then
+        frxReport1.Variables['titulo']  := QuotedStr('Ajuste saida');
+      frxReport1.ShowReport;
+    finally
+      SQLRelEntradasResumido.Close;
+    end;
+  end;
+end;
+
+procedure TfrmRelEntradas.rgTipoRelClick(Sender: TObject);
+var
+  vsmostra: Boolean;
+begin
+  vsmostra := (rgTipoRel.ItemIndex = 1);
+  label4.Visible     := vsmostra;
+  CodPro.Visible     := vsmostra;
+  Bevel2.Visible     := vsmostra;
+  lblproduto.Visible := vsmostra;
+end;
+
+procedure TfrmRelEntradas.ImpDetalhado;
+var
+  vsSql: string;
+begin
+  with DMReport do
+  begin
+    try
+      vsSql := 'select e.*, p.despro, i.codpro, i.qde, i.valor, i.total, i.numerolote, '+
+               'i.datavencimento, f.fantasiafor, f.nomfor, f.cnpjfor '+
+               'from entradas e '+
+               'left outer join fornecedores f on f.codfor=e.codfor '+
+               'left outer join entradasitens i on i.codentrada=e.codentrada '+
+               'left outer join produtos p on p.codpro=i.codpro '+
+               'where e.datacad >=:dataini and e.datacad <=:datafim ';
+      if rgTipoMov.ItemIndex = 0 then
+        vsSql := vsSql + ' and e.tipoentrada = '+QuotedStr('CP')+' '
+      else if rgTipoMov.ItemIndex = 1 then
+        vsSql := vsSql + ' and e.tipoentrada = '+QuotedStr('AE')+' '
+      else if rgTipoMov.ItemIndex = 2 then
+        vsSql := vsSql + ' and e.tipoentrada = '+QuotedStr('AS')+' ';
+
+      if rgSituacao.ItemIndex = 1 then
+        vsSql := vsSql + ' and e.databaixa is not null '
+      else if rgSituacao.ItemIndex = 2 then
+        vsSql := vsSql + ' and e.databaixa is null ';
+
+      if CodFor.Text <> '' then
+        vsSql := vsSql + 'and e.CodFor =:CodFor ';
+      if CodProduto.Text <> '' then
+        vsSql := vsSql + 'and i.codpro =:codpro ';
+      vsSql := vsSql + 'order by e.datacad, e.codentrada, i.seq ';
+      SQLRelEntradasDetalhado.Close;
+      SQLRelEntradasDetalhado.SQL.Clear;
+      SQLRelEntradasDetalhado.SQL.Add(vsSql);
+      SQLRelEntradasDetalhado.ParamByName('dataini').AsDateTime := Dataini.Date;
+      SQLRelEntradasDetalhado.ParamByName('datafim').AsDateTime := Datafim.Date;
+      if CodFor.Text <> '' then
+        SQLRelEntradasDetalhado.ParamByName('CodFor').AsInteger := StrToInt(CodFor.Text);
+      if CodPro.Text <> '' then
+        SQLRelEntradasDetalhado.ParamByName('CodPro').AsInteger := StrToInt(CodPro.Text);
+      SQLRelEntradasDetalhado.Open;
+      frxReport1.LoadFromFile(TLoadFileIni.GetInstance.PathRelat+'\frEntradasDetalhado.fr3');
+      frxReport1.Variables.Clear;
+      frxReport1.Variables['dataini'] := QuotedStr(Dataini.Text);
+      frxReport1.Variables['datafim'] := QuotedStr(Datafim.Text);
+      if rgTipoMov.ItemIndex = 0 then
+        frxReport1.Variables['titulo']  := QuotedStr('Compras')
+      else if rgTipoMov.ItemIndex = 1 then
+        frxReport1.Variables['titulo']  := QuotedStr('Ajuste entrada')
+      else if rgTipoMov.ItemIndex = 2 then
+        frxReport1.Variables['titulo']  := QuotedStr('Ajuste saida');
+      frxReport1.ShowReport;
+    finally
+      SQLRelEntradasDetalhado.Close;
+    end;
+  end;
+end;
+end.

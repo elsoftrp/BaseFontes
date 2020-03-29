@@ -1,0 +1,66 @@
+unit DataEstoque;
+
+interface
+
+uses
+  System.SysUtils, System.Classes, FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
+  FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt, FireDAC.Comp.Client,
+  Data.DB, FireDAC.Comp.DataSet, FireDAC.UI.Intf, FireDAC.Stan.Def,
+  FireDAC.Stan.Pool, FireDAC.Phys, FireDAC.Phys.FB, FireDAC.Phys.FBDef,
+  FireDAC.VCLUI.Wait;
+
+type
+  TDMEST = class(TDataModule)
+    FDQuery1: TFDQuery;
+    FDUpdateSQL1: TFDUpdateSQL;
+    SQLGrupos: TFDQuery;
+    UPGrupos: TFDUpdateSQL;
+    SQLLaboratorios: TFDQuery;
+    UPLaboratorios: TFDUpdateSQL;
+    SQLProdutos: TFDQuery;
+    UPProdutos: TFDUpdateSQL;
+    SQLProdutosCODPRO: TIntegerField;
+    SQLProdutosDESPRO: TStringField;
+    SQLProdutosCODLAB: TIntegerField;
+    SQLProdutosCODGRUPO: TIntegerField;
+    SQLProdutosNOMLAB: TStringField;
+    SQLProdutosDESGRUPO: TStringField;
+    SQLLaboratoriosCODLAB: TIntegerField;
+    SQLLaboratoriosNOMLAB: TStringField;
+    SQLGruposCODGRUPO: TIntegerField;
+    SQLGruposDESGRUPO: TStringField;
+    SQLProdutosSTATUS: TStringField;
+    SQLProdutosBARRAS: TStringField;
+    SQLProdutosPRINCIPIOATIVO: TStringField;
+    SQLProdutosAPLICACAO: TStringField;
+    SQLProdutosDATACAD: TDateField;
+    SQLProdutosDATAINATIVO: TDateField;
+    SQLProdutosOBS: TStringField;
+    SQLProdutosVENDA: TSingleField;
+    SQLFotosProd: TFDQuery;
+    UPFotosProd: TFDUpdateSQL;
+    DSFoto_Produtos: TDataSource;
+    BaseFoto: TFDConnection;
+    SQLFotosProdCODPRO: TIntegerField;
+    SQLFotosProdSEQ: TIntegerField;
+    SQLFotosProdIMAGEM: TBlobField;
+    SQLFotosProdNOMEARQUIVO: TStringField;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  DMEST: TDMEST;
+
+implementation
+
+{%CLASSGROUP 'Vcl.Controls.TControl'}
+
+uses DataModulo;
+
+{$R *.dfm}
+
+end.

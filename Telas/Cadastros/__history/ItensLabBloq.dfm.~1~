@@ -1,0 +1,5 @@
+inherited frmItensLabBloq: TfrmItensLabBloq
+  Caption = 'frmItensLabBloq'
+  PixelsPerInch = 96
+  TextHeight = 13
+end

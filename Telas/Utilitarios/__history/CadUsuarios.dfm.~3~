@@ -1,0 +1,455 @@
+inherited frmCadUsuarios: TfrmCadUsuarios
+  Left = 315
+  Top = 105
+  Caption = 'Cadastro de Usu'#225'rios e Permiss'#245'es'
+  ClientHeight = 471
+  ClientWidth = 613
+  ExplicitWidth = 619
+  ExplicitHeight = 500
+  PixelsPerInch = 96
+  TextHeight = 13
+  inherited Panel1: TPanel
+    Width = 613
+    Height = 471
+    ExplicitWidth = 613
+    ExplicitHeight = 471
+    inherited Panel3: TPanel
+      Top = 417
+      Width = 607
+      ExplicitTop = 417
+      ExplicitWidth = 607
+    end
+    inherited Panel4: TPanel
+      Width = 607
+      Height = 345
+      ExplicitWidth = 607
+      ExplicitHeight = 345
+      object Panel5: TPanel
+        Left = 0
+        Top = 0
+        Width = 603
+        Height = 129
+        Align = alTop
+        TabOrder = 0
+        object Label1: TLabel
+          Left = 30
+          Top = 12
+          Width = 33
+          Height = 13
+          Caption = 'C'#243'digo'
+          FocusControl = DBEdit1
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -11
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object Label2: TLabel
+          Left = 294
+          Top = 64
+          Width = 30
+          Height = 13
+          Caption = 'Senha'
+          FocusControl = DBEdit2
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -11
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object Label3: TLabel
+          Left = 35
+          Top = 37
+          Width = 27
+          Height = 13
+          Caption = 'Nome'
+          FocusControl = DBEdit3
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -11
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object Label5: TLabel
+          Left = 306
+          Top = 93
+          Width = 24
+          Height = 13
+          Caption = 'Perfil'
+          FocusControl = DBEdit2
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -11
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object Label6: TLabel
+          Left = 37
+          Top = 64
+          Width = 25
+          Height = 13
+          Caption = 'Login'
+          FocusControl = DBEdit5
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -11
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object Label4: TLabel
+          Left = 43
+          Top = 93
+          Width = 20
+          Height = 13
+          Caption = 'Tipo'
+          FocusControl = DBEdit5
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -11
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object DBEdit1: TDBEdit
+          Left = 67
+          Top = 8
+          Width = 62
+          Height = 21
+          CharCase = ecUpperCase
+          Color = clInfoBk
+          DataField = 'CodUsuario'
+          DataSource = DS
+          TabOrder = 0
+        end
+        object DBEdit2: TDBEdit
+          Left = 331
+          Top = 59
+          Width = 64
+          Height = 21
+          CharCase = ecUpperCase
+          Color = clInfoBk
+          DataField = 'Senha'
+          DataSource = DS
+          PasswordChar = '*'
+          TabOrder = 3
+        end
+        object DBEdit3: TDBEdit
+          Left = 67
+          Top = 33
+          Width = 278
+          Height = 21
+          CharCase = ecUpperCase
+          Color = clInfoBk
+          DataField = 'Nome'
+          DataSource = DS
+          TabOrder = 1
+        end
+        object DBRadioGroup1: TDBRadioGroup
+          Left = 68
+          Top = 82
+          Width = 177
+          Height = 32
+          Columns = 2
+          DataField = 'Tipo'
+          DataSource = DS
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -11
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          Items.Strings = (
+            'Perfil'
+            'Usu'#225'rio')
+          ParentFont = False
+          TabOrder = 4
+          Values.Strings = (
+            'P'
+            'U')
+        end
+        object DBEdit5: TDBEdit
+          Left = 67
+          Top = 60
+          Width = 102
+          Height = 21
+          CharCase = ecUpperCase
+          Color = clInfoBk
+          DataField = 'Login'
+          DataSource = DS
+          TabOrder = 2
+        end
+      end
+      object Panel6: TPanel
+        Left = 0
+        Top = 129
+        Width = 603
+        Height = 212
+        Align = alClient
+        TabOrder = 1
+        object IncludeBtn: TSpeedButton
+          Left = 204
+          Top = 38
+          Width = 24
+          Height = 24
+          Caption = '>'
+          OnClick = IncludeBtnClick
+        end
+        object IncAllBtn: TSpeedButton
+          Left = 204
+          Top = 70
+          Width = 24
+          Height = 24
+          Caption = '>>'
+          OnClick = IncAllBtnClick
+        end
+        object ExcludeBtn: TSpeedButton
+          Left = 204
+          Top = 107
+          Width = 24
+          Height = 24
+          Caption = '<'
+          OnClick = ExcludeBtnClick
+        end
+        object ExAllBtn: TSpeedButton
+          Left = 204
+          Top = 139
+          Width = 24
+          Height = 24
+          Caption = '<<'
+          OnClick = ExAllBtnClick
+        end
+        object GroupBox1: TGroupBox
+          Left = 424
+          Top = 8
+          Width = 163
+          Height = 193
+          Caption = 'Permiss'#245'es'
+          TabOrder = 0
+          object DBCheckBox1: TDBCheckBox
+            Left = 15
+            Top = 19
+            Width = 137
+            Height = 17
+            TabStop = False
+            Caption = 'Incluir Novos Registros'
+            DataField = 'btnIncluir'
+            DataSource = DataSource1
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clBlack
+            Font.Height = -11
+            Font.Name = 'Tahoma'
+            Font.Style = []
+            ParentFont = False
+            TabOrder = 0
+            ValueChecked = '1'
+            ValueUnchecked = '0'
+          end
+          object DBCheckBox2: TDBCheckBox
+            Left = 15
+            Top = 38
+            Width = 97
+            Height = 17
+            TabStop = False
+            Caption = 'Alterar Registros'
+            DataField = 'btnAlterar'
+            DataSource = DataSource1
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clBlack
+            Font.Height = -11
+            Font.Name = 'Tahoma'
+            Font.Style = []
+            ParentFont = False
+            TabOrder = 1
+            ValueChecked = '1'
+            ValueUnchecked = '0'
+          end
+          object DBCheckBox3: TDBCheckBox
+            Left = 15
+            Top = 56
+            Width = 97
+            Height = 17
+            TabStop = False
+            Caption = 'Excluir Registros'
+            DataField = 'btnExcluir'
+            DataSource = DataSource1
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clBlack
+            Font.Height = -11
+            Font.Name = 'Tahoma'
+            Font.Style = []
+            ParentFont = False
+            TabOrder = 2
+            ValueChecked = '1'
+            ValueUnchecked = '0'
+          end
+          object DBCheckBox4: TDBCheckBox
+            Left = 15
+            Top = 75
+            Width = 113
+            Height = 17
+            TabStop = False
+            Caption = 'Visualizar Registros'
+            DataField = 'btnVisualizar'
+            DataSource = DataSource1
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clBlack
+            Font.Height = -11
+            Font.Name = 'Tahoma'
+            Font.Style = []
+            ParentFont = False
+            TabOrder = 3
+            ValueChecked = '1'
+            ValueUnchecked = '0'
+          end
+          object DBCheckBox5: TDBCheckBox
+            Left = 15
+            Top = 94
+            Width = 97
+            Height = 17
+            TabStop = False
+            Caption = 'Imprimir'
+            DataField = 'btnImprimir'
+            DataSource = DataSource1
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clBlack
+            Font.Height = -11
+            Font.Name = 'Tahoma'
+            Font.Style = []
+            ParentFont = False
+            TabOrder = 4
+            ValueChecked = '1'
+            ValueUnchecked = '0'
+          end
+          object DBCheckBox7: TDBCheckBox
+            Left = 15
+            Top = 112
+            Width = 90
+            Height = 17
+            TabStop = False
+            Caption = 'Chave1'
+            DataField = 'btnChave1'
+            DataSource = DataSource1
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clBlack
+            Font.Height = -11
+            Font.Name = 'Tahoma'
+            Font.Style = []
+            ParentFont = False
+            TabOrder = 5
+            ValueChecked = '1'
+            ValueUnchecked = '0'
+          end
+          object DBCheckBox8: TDBCheckBox
+            Left = 15
+            Top = 131
+            Width = 97
+            Height = 17
+            TabStop = False
+            Caption = 'Chave2'
+            DataField = 'btnChave2'
+            DataSource = DataSource1
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clBlack
+            Font.Height = -11
+            Font.Name = 'Tahoma'
+            Font.Style = []
+            ParentFont = False
+            TabOrder = 6
+            ValueChecked = '1'
+            ValueUnchecked = '0'
+          end
+          object DBCheckBox9: TDBCheckBox
+            Left = 15
+            Top = 149
+            Width = 97
+            Height = 17
+            TabStop = False
+            Caption = 'Chave3'
+            DataField = 'btnChave3'
+            DataSource = DataSource1
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clBlack
+            Font.Height = -11
+            Font.Name = 'Tahoma'
+            Font.Style = []
+            ParentFont = False
+            TabOrder = 7
+            ValueChecked = '1'
+            ValueUnchecked = '0'
+          end
+          object DBCheckBox10: TDBCheckBox
+            Left = 15
+            Top = 168
+            Width = 97
+            Height = 17
+            TabStop = False
+            Caption = 'Chave4'
+            DataField = 'btnChave4'
+            DataSource = DataSource1
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clBlack
+            Font.Height = -11
+            Font.Name = 'Tahoma'
+            Font.Style = []
+            ParentFont = False
+            TabOrder = 8
+            ValueChecked = '1'
+            ValueUnchecked = '0'
+          end
+        end
+        object DBGrid1: TDBGrid
+          Left = 240
+          Top = 8
+          Width = 169
+          Height = 193
+          Color = clWhite
+          DataSource = DataSource1
+          Options = [dgRowSelect, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit]
+          TabOrder = 1
+          TitleFont.Charset = ANSI_CHARSET
+          TitleFont.Color = clWindowText
+          TitleFont.Height = -11
+          TitleFont.Name = 'Tahoma'
+          TitleFont.Style = []
+          Columns = <
+            item
+              Expanded = False
+              FieldName = 'NOMEPROGRAMA'
+              Visible = True
+            end>
+        end
+        object Lista: TListBox
+          Left = 24
+          Top = 6
+          Width = 169
+          Height = 195
+          Color = clWhite
+          ItemHeight = 13
+          MultiSelect = True
+          Sorted = True
+          TabOrder = 2
+        end
+      end
+    end
+    inherited pnlBar: TPanel
+      Width = 607
+      ExplicitWidth = 607
+      inherited SpeedButton5: TSpeedButton
+        Left = 548
+        ExplicitLeft = 548
+      end
+    end
+  end
+  inherited DS: TDataSource
+    DataSet = DM.SQLUsuarios
+  end
+  object DataSource1: TDataSource
+    DataSet = DM.SQLProgramasUsuario
+    Left = 313
+    Top = 265
+  end
+end

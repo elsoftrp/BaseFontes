@@ -1,0 +1,66 @@
+unit Setup;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, ModeloRelNew, Vcl.Menus, Vcl.ImgList,
+  System.Actions, Vcl.ActnList, Vcl.StdCtrls, Vcl.Buttons, Vcl.ExtCtrls;
+
+type
+  TFSetup = class(TfrmModeloRelNew)
+    procedure FormShow(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  protected
+    procedure doImprimir; override;
+  end;
+
+var
+  FSetup: TFSetup;
+
+implementation
+
+{$R *.dfm}
+
+uses DataModulo;
+
+{ TfrmModeloRelNew1 }
+
+procedure TFSetup.doImprimir;
+begin
+  DM.DataBase.StartTransaction;
+  try
+    DM.Setup.Post;
+    DM.Setup.ApplyUpDates;
+  except
+       DM.DataBase.Rollback;
+    raise;
+  end;
+  DM.DataBase.Commit;
+  DM.Setup.CommitUpdates;
+  Close;
+end;
+
+procedure TFSetup.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+  DM.Setup.Close;
+  inherited;
+end;
+
+procedure TFSetup.FormShow(Sender: TObject);
+begin
+  FConnection := DM.Database;
+  FNomeTabela := 'Setup';
+  inherited;
+  DM.Setup.Close;
+  DM.Setup.ParamByName('Cont').asInteger := 1;
+  DM.Setup.Open;
+  DM.Setup.Edit;
+end;
+
+end.

@@ -1,0 +1,533 @@
+unit CadPedidos;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, DB, ActnList, Menus, ActnPopup, ImgList, Buttons,
+  StdCtrls, ExtCtrls, Grids, DBGrids, DBCtrls, Mask,
+  RDprint, SqlTimSt,  ModeloDiretoDac, uSeek, uAcoes, System.Actions,
+  Vcl.PlatformDefaultStyleActnCtrls, FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
+  FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt, FireDAC.Comp.DataSet,
+  FireDAC.Comp.Client, JvExMask, JvToolEdit, JvDBControls, ulib;
+
+type
+  TfrmCadPedidos = class(TfrmModeloDiretoDac)
+    Panel2: TPanel;
+    Panel5: TPanel;
+    SpeedButton6: TSpeedButton;
+    SpeedButton9: TSpeedButton;
+    SpeedButton10: TSpeedButton;
+    Panel6: TPanel;
+    DBGrid1: TDBGrid;
+    DataSource1: TDataSource;
+    Bevel5: TBevel;
+    Label6: TLabel;
+    DBText4: TDBText;
+    Bevel6: TBevel;
+    Label7: TLabel;
+    DBText5: TDBText;
+    Bevel1: TBevel;
+    DBText1: TDBText;
+    DBEdit1: TDBEdit;
+    Label1: TLabel;
+    Label3: TLabel;
+    ActionList2: TActionList;
+    acIncluirI: TAction;
+    acAlterarI: TAction;
+    acExcluirI: TAction;
+    acConsultarI: TAction;
+    ImageList2: TImageList;
+    rd: TRDprint;
+    acReceita: TAction;
+    SpeedButton11: TSpeedButton;
+    lblCliente: TLabel;
+    CodCli: TDBEdit;
+    DBDateEdit1: TJvDBDateEdit;
+    procedure acIncluirIExecute(Sender: TObject);
+    procedure acAlterarIExecute(Sender: TObject);
+    procedure acExcluirIExecute(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure CodCliExit(Sender: TObject);
+    procedure acImprimirExecute(Sender: TObject);
+  private
+    vQueryI: TFDQuery;
+    FSeq: Integer;
+    seek: TSeek;
+    procedure Atualiza_Val;
+    procedure Imprime;
+    procedure BaixaEstoque;
+    procedure BaixaCreditoVale;
+    procedure GetIdSeq;
+    procedure ImprimeVale(codigo: Integer);
+    procedure CarregaSetup;
+  protected
+    procedure ComplementoSaidaCampoChave; override;
+    procedure ComplementoNaoIncluirSaidaCampoChave; override;
+    procedure AntesDeGravarConfirmado; override;
+    procedure Liberarbtn; override;
+    procedure Gravar; override;
+    procedure doGravaDataSets; override;
+    procedure doFecharDataSets(erro: Boolean = False; cancel: Boolean = False); override;
+    procedure doAntesFecharDataSetsIncluir; override;
+
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmCadPedidos: TfrmCadPedidos;
+
+implementation
+
+uses Funcoes, ItensPedidos, TotalPedido, DataModulo;
+
+{$R *.dfm}
+
+procedure TfrmCadPedidos.Liberarbtn;
+begin
+  if (vQuerydac.State = DsEdit) or (vQuerydac.State = DsInsert) then
+  begin
+    acIncluirI.Enabled   := True;
+    acAlterarI.Enabled   := True;
+    acExcluirI.Enabled   := True;
+  end
+  else
+  begin
+    acIncluirI.Enabled   := False;
+    acAlterarI.Enabled   := False;
+    acExcluirI.Enabled   := False;
+  end;
+  inherited;
+end;
+
+procedure TfrmCadPedidos.acAlterarIExecute(Sender: TObject);
+begin
+  frmItensPedidos := TfrmItensPedidos.Create(Self, 0);
+  try
+    vQueryI.Edit;
+    frmItensPedidos.ShowModal;
+  finally
+    frmItensPedidos.Release;
+    Atualiza_Val;
+  end;
+end;
+
+procedure TfrmCadPedidos.acExcluirIExecute(Sender: TObject);
+begin
+  if Application.messagebox('Confirma a EXCLUSÃO deste Item?', vp, mb_yesno) = idyes then
+  begin
+    vQueryI.Delete;
+    Atualiza_Val;
+  end;
+end;
+
+procedure TfrmCadPedidos.acImprimirExecute(Sender: TObject);
+begin
+  if vQuerydac.Active then
+    Imprime;
+end;
+
+procedure TfrmCadPedidos.acIncluirIExecute(Sender: TObject);
+begin
+  GetIdSeq;
+  vQueryI.Append;
+  vQueryI.FieldByName(FCampoChave).AsInteger := vQuerydac.FieldByName(FCampoChave).asInteger;
+  frmItensPedidos := TfrmItensPedidos.Create(Self, FSeq, aIncluir);
+  try
+    frmItensPedidos.ShowModal;
+  finally
+    frmItensPedidos.Release;
+    Atualiza_Val;
+  end;
+end;
+
+procedure TfrmCadPedidos.Atualiza_Val;
+var
+  BookMark: TBookmark;
+  vValor: Double;
+begin
+  BookMark := vqueryi.GetBookmark;
+  vqueryi.DisableControls;
+  vqueryi.First;
+  vValor := 0;
+  while not vqueryi.EOF do
+  begin
+    vValor := vValor + vqueryi.FieldByName('prtotal').Value;
+    vqueryi.Next;
+  end;
+  vqueryi.GotoBookmark(BookMark);
+  vqueryi.FreeBookmark(BookMark);
+  vqueryi.EnableControls;
+  vQuerydac.FieldByName('TotPro').asCurrency := vValor;
+  vQuerydac.FieldByName('Total').asCurrency  := (vValor);
+end;
+
+procedure TfrmCadPedidos.BaixaCreditoVale;
+var
+  qry: TFDQuery;
+  vsSql: string;
+begin
+  qry  := TFDQuery.Create(nil);
+  try
+    vsSql  := 'update peddevolucao set usado = usado+:usado where codpeddevolucao =:codigo and data =:data ';
+    qry.Connection  := FConnection;
+
+    qry.SQL.clear;
+    qry.SQL.Add(vsSql);
+
+    qry.ParamByName('codigo').AsInteger  := vQuerydac.FieldByName('codvale').AsInteger;
+    qry.ParamByName('usado').AsCurrency  := vQuerydac.FieldByName('vale').AsCurrency;
+    qry.ParamByName('data').AsDateTime   := vQuerydac.FieldByName('Datavale').AsDateTime;
+
+    qry.ExecSQL;
+  finally
+    FreeAndNil(qry);
+  end;
+end;
+
+procedure TfrmCadPedidos.BaixaEstoque;
+var
+  qry, qryP: TFDQuery;
+  vsSql, vsSqlP: string;
+begin
+  qry  := TFDQuery.Create(nil);
+  qryP := TFDQuery.Create(nil);
+  try
+    vsSqlP := 'update produtos set UltVenda =:ultvenda where codpro =:codpro ';
+    vsSql  := 'insert into movestoque (codpro, numerolote, datavencimento, quantidade, prcompra, prvenda, tipo, data, coddoc) values '+
+              '(:codpro, :numerolote, :datavencimento, :quantidade, :prcompra, :prvenda, :tipo, :data, :coddoc)';
+    qry.Connection  := FConnection;
+    qryP.Connection := FConnection;
+
+    qryP.SQL.Clear;
+    qryP.SQL.Add(vsSqlP);
+
+    qry.SQL.clear;
+    qry.SQL.Add(vsSql);
+
+    vQueryI.First;
+    while not vQueryI.Eof do
+    begin
+      qryP.ParamByName('codpro').AsInteger  := vQueryI.FieldByName('codpro').AsInteger;
+      qryP.ParamByName('ultvenda').AsDateTime   := vQuerydac.FieldByName('Data').AsDateTime;
+      //
+      qry.ParamByName('codpro').AsInteger  := vQueryI.FieldByName('codpro').AsInteger;
+      if vQueryI.FieldByName('controlalote').AsString = 'N' then
+      begin
+        qry.ParamByName('numerolote').AsString       := '0';
+        qry.ParamByName('datavencimento').AsDateTime := StrToDate('01/01/2000');
+      end
+      else
+      begin
+        qry.ParamByName('numerolote').AsString       := vQueryI.FieldByName('numerolote').AsString;
+        qry.ParamByName('datavencimento').AsDateTime := vQueryI.FieldByName('datavencimento').AsDateTime;
+      end;
+      qry.ParamByName('quantidade').AsCurrency := vQueryI.FieldByName('quantidade').AsCurrency;
+      qry.ParamByName('prcompra').AsCurrency   := vQueryI.FieldByName('prcompra').AsCurrency;
+      qry.ParamByName('prvenda').AsCurrency    := vQueryI.FieldByName('prvenda').AsCurrency;
+      qry.ParamByName('data').AsDateTime       := vQuerydac.FieldByName('Data').AsDateTime;
+      qry.ParamByName('coddoc').AsInteger      := vQuerydac.FieldByName(FCampoChave).AsInteger;
+      qry.ParamByName('tipo').AsString         := 'S';
+
+      qry.ExecSQL;
+      qryP.ExecSQL;
+
+      vQueryI.Next;
+    end;
+  finally
+    FreeAndNil(qry);
+    FreeAndNil(qryP);
+  end;
+end;
+
+procedure TfrmCadPedidos.CarregaSetup;
+begin
+  DM.Setup.Close;
+  DM.Setup.ParamByName('cont').AsInteger := 1;
+  try
+    DM.Setup.Open;
+    //vbControleLote := (DM.Setup.FieldByName('estoquelote').AsString = 'S');
+  finally
+    DM.Setup.Close;
+  end;
+end;
+
+procedure TfrmCadPedidos.CodCliExit(Sender: TObject);
+begin
+  if (FAcao = aSemAcao) or (btnCancelar.Focused) then exit;
+  if (Sender as TDBEdit).Text = '' then
+  begin
+    vQuerydac.FieldByName('nome').asString := 'CONSUMIDOR';
+    exit;
+  end;
+  if not fseek.Seek('Clientes',1,['CodCli'],[(Sender as TDBEdit).Text]) then
+  begin
+    tlib.Mensagem('Aviso',' Cliente não encontrado.','!');
+    (Sender as TDBEdit).SetFocus;
+    exit;
+  end;
+  vQuerydac.FieldByName('nome').asString := fseek.Qry.FieldByname('NomCli').asString;
+  if fseek.Qry.FieldByName('Inativo').asString = 'I' then
+  begin
+    tlib.Mensagem('Aviso','Cliente está Inativo.','E');
+    (Sender as TDBEdit).SetFocus;
+    exit;
+  end;
+  if vqueryi.IsEmpty then
+    acIncluirI.Execute;
+end;
+
+procedure TfrmCadPedidos.ComplementoNaoIncluirSaidaCampoChave;
+begin
+  vQueryI.Open;
+end;
+
+procedure TfrmCadPedidos.ComplementoSaidaCampoChave;
+begin
+  FSeq := 0;
+  vQuerydac.FieldByName('Data').asDateTime := int(FDireitos.DataHoje);
+  vQueryI.Open;
+end;
+
+procedure TfrmCadPedidos.doAntesFecharDataSetsIncluir;
+begin
+  if FAcao = aIncluir then
+  begin
+    Imprime;
+    if vQuerydac.FieldByName('vale').AsCurrency > 0 then
+    begin
+      ImprimeVale(vQuerydac.FieldByName('codvale').AsInteger);
+    end;
+  end;      
+end;
+
+procedure TfrmCadPedidos.doFecharDataSets(erro, cancel: Boolean);
+begin
+  if erro then
+  begin
+    vQueryI.Cancel;
+  end;
+  if (not cancel) and (FAcao in [aIncluir, aAlterar, aBaixar]) then
+  begin
+    vQueryI.CommitUpdates;
+  end;
+  vQueryI.Close;
+end;
+
+procedure TfrmCadPedidos.doGravaDataSets;
+begin
+  if FAcao = aIncluir then
+  begin
+    BaixaEstoque;
+    if vQuerydac.FieldByName('vale').AsCurrency > 0 then
+    begin
+      BaixaCreditoVale;
+    end;
+  end;
+  if FAcao in[aIncluir, aAlterar, aBaixar] then
+  begin
+    vQueryI.ApplyUpdates;
+  end
+  else if FAcao = aExcluir then
+  begin
+    vQueryI.First;
+    while not vQueryI.Eof do
+    begin
+      vQueryI.Delete;
+    end;
+    vQueryI.ApplyUpdates;
+
+  end;
+end;
+
+procedure TfrmCadPedidos.FormShow(Sender: TObject);
+begin
+  FConnection  := DM.DataBase;
+  vQuerydac    := DM.SQLPedidos;
+  vQueryI      := DM.SQLItensPedidos;
+  FCampoChave  := 'CodPedido';
+  FNomeTabela  := 'Pedidos';
+  FFocoI       := DBEdit1;
+  FFocoA       := DBEdit1;
+  inherited;
+end;
+
+procedure TfrmCadPedidos.GetIdSeq;
+begin
+  if not vQueryI.IsEmpty then
+  begin
+    vQueryI.First;
+    vQueryI.Last;
+    FSeq := vQueryI.FieldByName('Seq').AsInteger+1;
+    vQueryI.First;
+  end
+  else
+    FSeq := 1;
+end;
+
+procedure TfrmCadPedidos.AntesDeGravarConfirmado;
+begin
+  if FAcao = aIncluir then
+  begin
+  end;
+end;
+
+procedure TfrmCadPedidos.Gravar;
+begin
+  Atualiza_Val;
+  if vQueryI.IsEmpty then
+  begin
+    tlib.Mensagem('Aviso','Sem produtos para concluir a Venda','!');
+    exit;
+  end;
+  frmTotalPedido := TfrmTotalPedido.Create(self, 'V');
+  try
+    frmTotalPedido.ShowModal;
+    if frmTotalPedido.ModalResult <> mrOk then
+    begin
+      vQuerydac.FieldByName('desconto').AsCurrency := 0;
+      Exit;
+    end;
+  finally
+    frmTotalPedido.Release;
+  end;
+
+  inherited;
+end;
+
+procedure TfrmCadPedidos.Imprime;
+var vNum, vData, vUnitario,vQuant,vPrTot: String;
+    vProd:String[45];
+    y,l,c: Integer;
+    Imp:TextFile;
+begin
+  vNum   := F.Strzero(vQuerydac.FieldByName('CodPedido').asString,5);
+  vData  := vQuerydac.FieldByName('Data').asString+' '+formatDateTime('HH:NN',Time);
+  rd.NumerodeCopias := 1;
+  y := vqueryi.RecordCount;
+  l := 1;
+  c := 1;
+  rd.TamanhoQteLinhas := (2*y)+39;
+  rd.Abrir;
+
+  if rd.Setup then
+  begin
+    //rd.Impressora := Bobina;
+
+    rd.Imp(l,c,'=========================================='); l := l+1;
+    rd.imp(l,c,'                RECIBO              '); l := l+1;
+    rd.Imp(l,c,'=========================================='); l := l+1;
+    rd.imp(l,c,'Pedido Nro: '+vnum+'  Data: '+vData); l := l+1;
+    rd.imp(l,c,'Cliente  : '+vQuerydac.FieldByName('CodCli').asString+' '+Copy(vQuerydac.FieldByName('nome').asString,1,20)); l := l+1;
+    l := l+1;
+    rd.imp(l,c,'------------------------------------------'); l := l+1;
+    rd.imp(l,c,'Produto                                      '); l := l+1;
+    rd.imp(l,c,'Pr.Unitario    X   Quantidade     Pr.Total'); l := l+1;
+    rd.imp(l,c,'------------------------------------------');
+    //items
+    vqueryi.first;
+    vqueryi.DisableControls;
+    while not vqueryi.Eof do
+    begin
+      l := l+1; c := 1;
+      vprod     := vqueryi.fieldbyname('despro').asstring ;
+      vunitario := formatfloat('#,##0.00',(vqueryi.fieldbyname('prvenda').ascurrency-vqueryi.fieldbyname('desconto').ascurrency));
+      vquant    := formatfloat('#,##0.00',vqueryi.fieldbyname('quantidade').ascurrency);
+      vprtot    := formatfloat('#,##0.00',vqueryi.fieldbyname('prtotal').ascurrency);
+      rd.Imp(l,c,vprod); l := l+1;  c:=12;
+      rd.impD(l,c,vunitario,[comp12]); c := 29;
+      rd.impD(l,c,vquant,[comp12]); c := 42;
+      rd.impD(l,c,vprtot,[comp12]);
+      vqueryi.next;
+    end;
+    vqueryi.EnableControls;
+    //
+    l := l+1; c := 1;
+    rd.imp(l,c,'------------------------------------------'); l := l+1; c := 42;
+    rd.impD(l,c,'Total do Produto:   '+FormatFloat('#,##0.00',vQuerydac.FieldByName('totpro').asCurrency),[comp12]); l := l+1; c:=42;
+    if vQuerydac.FieldByName('desconto').AsCurrency > 0 then
+    begin
+      rd.impD(l,c,'Desconto:   '+FormatFloat('#,##0.00',vQuerydac.FieldByName('desconto').asCurrency),[comp12]); l := l+1; c:=42;
+    end;
+    rd.impD(l,c,'Total do Pedido:   '+FormatFloat('#,##0.00',vQuerydac.FieldByName('total').asCurrency),[comp12]); l := l+1; c:=42;
+
+      if vQuerydac.FieldByName('Dinheiro').AsCurrency > 0 then
+      begin
+        rd.impD(l,c,'Total Dinheiro:   '+FormatFloat('#,##0.00',vQuerydac.FieldByName('Dinheiro').asCurrency),[comp12]); l := l+1; c:=42;
+      end;
+      if vQuerydac.FieldByName('Cartao').AsCurrency > 0 then
+      begin
+        rd.impD(l,c,'Total Cartão:   '+FormatFloat('#,##0.00',vQuerydac.FieldByName('Cartao').asCurrency),[comp12]); l := l+1; c:=42;
+      end;
+      if vQuerydac.FieldByName('Vale').AsCurrency > 0 then
+      begin
+        rd.impD(l,c,'V.Crédito:   '+FormatFloat('#,##0.00',vQuerydac.FieldByName('Vale').asCurrency),[comp12]); l := l+1; c:=42;
+      end;
+      if vQuerydac.FieldByName('Troco').AsCurrency > 0 then
+      begin
+        rd.impD(l,c,'Troco:   '+FormatFloat('#,##0.00',vQuerydac.FieldByName('Troco').asCurrency),[comp12]); l := l+1; c:=42;
+      end;
+    l := l+1; c:=1;
+    rd.imp(l,c,'              '); l:=l+13;
+    rd.Imp(l,c,'.');
+  end;
+  rd.Fechar;
+end;
+
+procedure TfrmCadPedidos.ImprimeVale(codigo: Integer);
+var vNum, vData: String;
+    y,l,c: Integer;
+    qry: TFDQuery;
+begin
+  qry := TFDQuery.Create(nil);
+  try
+    qry.Connection := FConnection;
+    qry.SQL.Clear;
+    qry.SQL.Add('select * from peddevolucao where codpeddevolucao =:codigo');
+    qry.ParamByName('codigo').AsInteger := codigo;
+    qry.Open;
+    if qry.IsEmpty then
+    begin
+      Exit;
+    end;
+    if qry.FieldByName('usado').AsCurrency < qry.FieldByName('total').AsCurrency  then
+    begin
+      vNum   := F.Strzero(qry.FieldByName('CodPedDevolucao').asString,5);
+      vData  := qry.FieldByName('Data').asString+' '+formatDateTime('HH:NN',Time);
+      rd.NumerodeCopias := 1;
+      y := vqueryi.RecordCount;
+      l := 1;
+      c := 1;
+      rd.TamanhoQteLinhas := 30;
+      rd.Abrir;
+      if rd.Setup then
+      begin
+        rd.Imp(l,c,'=========================================='); l := l+1;
+        rd.imp(l,c,'        VALE CREDITO           '); l := l+1;
+        rd.Imp(l,c,'=========================================='); l := l+1;
+        rd.imp(l,c,'Vale Nro: '+vnum+'  Data: '+vData); l := l+1;
+        rd.imp(l,c,'Nome: '+qry.FieldByName('nome').asString); l := l+1;
+        rd.imp(l,c,'Ref. Pedido: '+qry.FieldByName('CodPedido').asString); l := l+1;
+        rd.impD(l,c,'Valor do Vale: '+FormatFloat('#,##0.00',(qry.FieldByName('Total').asCurrency-qry.FieldByName('Usado').asCurrency)),[comp12]); l := l+1; c:=1;
+        l := l+2; c := 1;
+        rd.imp(l,c,'   Para usar o crédito, este comprovante  '); l := l+1; c:=1;
+        rd.imp(l,c,'   precisa ser apresentado, guarde este   '); l := l+1; c:=1;
+        rd.imp(l,c,'          recibo com segurança            '); l := l+1; c:=1;
+        rd.imp(l,c,'==========================================');
+        l := l+2; c:=1;
+        rd.imp(l,c,'    -------------------------------       '); l := l+1; c := 1;
+        rd.imp(l,c,'         assinatura    '); l:=l+13;
+        rd.Imp(l,c,'.');
+      end;
+      rd.Fechar;
+    end;
+  finally
+    qry.Close;
+    FreeAndNil(qry);
+  end;
+end;
+
+end.

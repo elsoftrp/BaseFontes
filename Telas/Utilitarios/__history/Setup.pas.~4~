@@ -1,0 +1,82 @@
+unit Setup;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+   FileCtrl, StdCtrls, Mask, DBCtrls, Buttons, ModeloRelNew,
+  ExtCtrls;
+
+type
+  TFSetup = class(TfrmModeloRelNew)
+    procedure btnOkClick(Sender: TObject);
+    procedure btnCancelarClick(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormShow(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  FSetup: TFSetup;
+
+implementation
+
+uses Menu, Funcoes, DataModulo;
+
+{$R *.DFM}
+
+procedure TFSetup.btnOkClick(Sender: TObject);
+begin
+  DM.DataBase.StartTransaction;
+  try
+    DM.Setup.Post;
+    DM.Setup.ApplyUpDates;
+  except
+       DM.DataBase.Rollback;
+    raise;
+  end;
+  DM.DataBase.Commit;
+  DM.Setup.CommitUpdates;
+  Close;
+end;
+
+procedure TFSetup.btnCancelarClick(Sender: TObject);
+begin
+
+  Close;
+end;
+
+procedure TFSetup.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  Case Key of
+    vk_Return:Perform(Wm_NextDlgCtl, 0, 0);
+    vk_Up:Perform(Wm_NextDlgCtl, 1, 0);
+    vk_Escape:
+    begin
+
+    end;
+  end;
+end;
+
+procedure TFSetup.FormShow(Sender: TObject);
+begin
+  inherited;
+  DM.Setup.Close;
+  DM.Setup.ParamByName('Cont').asInteger := 1;
+  DM.Setup.Open;
+  DM.Setup.Edit;
+end;
+
+procedure TFSetup.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  DM.Setup.Close;
+  inherited;
+end;
+
+end.

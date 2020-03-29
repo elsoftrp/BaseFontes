@@ -1,0 +1,316 @@
+object DMEST: TDMEST
+  OldCreateOrder = False
+  Height = 458
+  Width = 513
+  object FDQuery1: TFDQuery
+    CachedUpdates = True
+    Connection = DM.DataBase
+    UpdateObject = FDUpdateSQL1
+    Left = 48
+    Top = 24
+  end
+  object FDUpdateSQL1: TFDUpdateSQL
+    Connection = DM.DataBase
+    Left = 96
+    Top = 24
+  end
+  object SQLGrupos: TFDQuery
+    CachedUpdates = True
+    Connection = DM.DataBase
+    UpdateObject = UPGrupos
+    SQL.Strings = (
+      'select g.* from grupos g'
+      'where g.codgrupo =:codgrupo')
+    Left = 48
+    Top = 112
+    ParamData = <
+      item
+        Name = 'CODGRUPO'
+        DataType = ftInteger
+        ParamType = ptInput
+      end>
+    object SQLGruposCODGRUPO: TIntegerField
+      DisplayLabel = 'C'#243'digo'
+      FieldName = 'CODGRUPO'
+      Origin = 'CODGRUPO'
+      ProviderFlags = [pfInUpdate, pfInWhere, pfInKey]
+      Required = True
+    end
+    object SQLGruposDESGRUPO: TStringField
+      DisplayLabel = 'Grupo'
+      FieldName = 'DESGRUPO'
+      Origin = 'DESGRUPO'
+      Required = True
+      Size = 30
+    end
+  end
+  object UPGrupos: TFDUpdateSQL
+    Connection = DM.DataBase
+    InsertSQL.Strings = (
+      'INSERT INTO GRUPOS'
+      '(CODGRUPO, DESGRUPO)'
+      'VALUES (:NEW_CODGRUPO, :NEW_DESGRUPO)')
+    ModifySQL.Strings = (
+      'UPDATE GRUPOS'
+      'SET CODGRUPO = :NEW_CODGRUPO, DESGRUPO = :NEW_DESGRUPO'
+      'WHERE CODGRUPO = :OLD_CODGRUPO')
+    DeleteSQL.Strings = (
+      'DELETE FROM GRUPOS'
+      'WHERE CODGRUPO = :OLD_CODGRUPO')
+    FetchRowSQL.Strings = (
+      'SELECT CODGRUPO, DESGRUPO'
+      'FROM GRUPOS'
+      'WHERE CODGRUPO = :CODGRUPO')
+    Left = 96
+    Top = 112
+  end
+  object SQLLaboratorios: TFDQuery
+    CachedUpdates = True
+    Connection = DM.DataBase
+    UpdateObject = UPLaboratorios
+    SQL.Strings = (
+      'select l.* from laboratorios l'
+      'where l.codlab =:codlab')
+    Left = 48
+    Top = 168
+    ParamData = <
+      item
+        Name = 'CODLAB'
+        DataType = ftInteger
+        ParamType = ptInput
+      end>
+    object SQLLaboratoriosCODLAB: TIntegerField
+      DisplayLabel = 'C'#243'digo'
+      FieldName = 'CODLAB'
+      Origin = 'CODLAB'
+      ProviderFlags = [pfInUpdate, pfInWhere, pfInKey]
+      Required = True
+    end
+    object SQLLaboratoriosNOMLAB: TStringField
+      DisplayLabel = 'Laborat'#243'rio'
+      FieldName = 'NOMLAB'
+      Origin = 'NOMLAB'
+      Required = True
+      Size = 50
+    end
+  end
+  object UPLaboratorios: TFDUpdateSQL
+    Connection = DM.DataBase
+    InsertSQL.Strings = (
+      'INSERT INTO LABORATORIOS'
+      '(CODLAB, NOMLAB)'
+      'VALUES (:NEW_CODLAB, :NEW_NOMLAB)')
+    ModifySQL.Strings = (
+      'UPDATE LABORATORIOS'
+      'SET CODLAB = :NEW_CODLAB, NOMLAB = :NEW_NOMLAB'
+      'WHERE CODLAB = :OLD_CODLAB')
+    DeleteSQL.Strings = (
+      'DELETE FROM LABORATORIOS'
+      'WHERE CODLAB = :OLD_CODLAB')
+    FetchRowSQL.Strings = (
+      'SELECT CODLAB, NOMLAB'
+      'FROM LABORATORIOS'
+      'WHERE CODLAB = :CODLAB')
+    Left = 96
+    Top = 168
+  end
+  object SQLProdutos: TFDQuery
+    CachedUpdates = True
+    Connection = DM.DataBase
+    UpdateObject = UPProdutos
+    SQL.Strings = (
+      'select p.*, l.nomlab, g.desgrupo'
+      'from produtos p '
+      'left outer join laboratorios l on l.codlab=p.codlab'
+      'left outer join grupos g on g.codgrupo=p.codgrupo'
+      'where p.codpro =:codpro')
+    Left = 48
+    Top = 224
+    ParamData = <
+      item
+        Name = 'CODPRO'
+        DataType = ftInteger
+        ParamType = ptInput
+      end>
+    object SQLProdutosCODPRO: TIntegerField
+      DisplayLabel = 'C'#243'digo'
+      FieldName = 'CODPRO'
+      Origin = 'CODPRO'
+      ProviderFlags = [pfInUpdate, pfInWhere, pfInKey]
+      Required = True
+    end
+    object SQLProdutosDESPRO: TStringField
+      DisplayLabel = 'Produto'
+      FieldName = 'DESPRO'
+      Origin = 'DESPRO'
+      Required = True
+      Size = 60
+    end
+    object SQLProdutosCODLAB: TIntegerField
+      DisplayLabel = 'Laborat'#243'rio'
+      FieldName = 'CODLAB'
+      Origin = 'CODLAB'
+      Required = True
+    end
+    object SQLProdutosCODGRUPO: TIntegerField
+      DisplayLabel = 'Grupo'
+      FieldName = 'CODGRUPO'
+      Origin = 'CODGRUPO'
+    end
+    object SQLProdutosNOMLAB: TStringField
+      AutoGenerateValue = arDefault
+      FieldName = 'NOMLAB'
+      Origin = 'NOMLAB'
+      ProviderFlags = []
+      Size = 50
+    end
+    object SQLProdutosDESGRUPO: TStringField
+      AutoGenerateValue = arDefault
+      FieldName = 'DESGRUPO'
+      Origin = 'DESGRUPO'
+      ProviderFlags = []
+      Size = 30
+    end
+    object SQLProdutosSTATUS: TStringField
+      FieldName = 'STATUS'
+      Origin = 'STATUS'
+      FixedChar = True
+      Size = 1
+    end
+    object SQLProdutosBARRAS: TStringField
+      DisplayLabel = 'C'#243'd.Barras'
+      FieldName = 'BARRAS'
+      Origin = 'BARRAS'
+      Size = 15
+    end
+    object SQLProdutosPRINCIPIOATIVO: TStringField
+      DisplayLabel = 'Principio Ativo'
+      FieldName = 'PRINCIPIOATIVO'
+      Origin = 'PRINCIPIOATIVO'
+      Size = 50
+    end
+    object SQLProdutosAPLICACAO: TStringField
+      DisplayLabel = 'Aplica'#231#227'o'
+      FieldName = 'APLICACAO'
+      Origin = 'APLICACAO'
+      Size = 100
+    end
+    object SQLProdutosDATACAD: TDateField
+      DisplayLabel = 'Data Cad.'
+      FieldName = 'DATACAD'
+      Origin = 'DATACAD'
+    end
+    object SQLProdutosDATAINATIVO: TDateField
+      DisplayLabel = 'D.Inativo'
+      FieldName = 'DATAINATIVO'
+      Origin = 'DATAINATIVO'
+    end
+    object SQLProdutosOBS: TStringField
+      DisplayLabel = 'Observa'#231#227'o'
+      FieldName = 'OBS'
+      Origin = 'OBS'
+      Size = 120
+    end
+    object SQLProdutosVENDA: TSingleField
+      DisplayLabel = 'Pre'#231'o de Venda'
+      FieldName = 'VENDA'
+      Origin = 'VENDA'
+    end
+  end
+  object UPProdutos: TFDUpdateSQL
+    Connection = DM.DataBase
+    InsertSQL.Strings = (
+      'INSERT INTO PRODUTOS'
+      '(CODPRO, DESPRO, DATACAD, CODLAB, CODGRUPO, '
+      '  STATUS, DATAINATIVO, BARRAS, PRINCIPIOATIVO, '
+      '  APLICACAO, OBS, VENDA)'
+      
+        'VALUES (:NEW_CODPRO, :NEW_DESPRO, :NEW_DATACAD, :NEW_CODLAB, :NE' +
+        'W_CODGRUPO, '
+      
+        '  :NEW_STATUS, :NEW_DATAINATIVO, :NEW_BARRAS, :NEW_PRINCIPIOATIV' +
+        'O, '
+      '  :NEW_APLICACAO, :NEW_OBS, :NEW_VENDA)')
+    ModifySQL.Strings = (
+      'UPDATE PRODUTOS'
+      
+        'SET CODPRO = :NEW_CODPRO, DESPRO = :NEW_DESPRO, DATACAD = :NEW_D' +
+        'ATACAD, '
+      
+        '  CODLAB = :NEW_CODLAB, CODGRUPO = :NEW_CODGRUPO, STATUS = :NEW_' +
+        'STATUS, '
+      
+        '  DATAINATIVO = :NEW_DATAINATIVO, BARRAS = :NEW_BARRAS, PRINCIPI' +
+        'OATIVO = :NEW_PRINCIPIOATIVO, '
+      '  APLICACAO = :NEW_APLICACAO, OBS = :NEW_OBS, VENDA = :NEW_VENDA'
+      'WHERE CODPRO = :OLD_CODPRO')
+    DeleteSQL.Strings = (
+      'DELETE FROM PRODUTOS'
+      'WHERE CODPRO = :OLD_CODPRO')
+    FetchRowSQL.Strings = (
+      
+        'SELECT CODPRO, DESPRO, DATACAD, CODLAB, CODGRUPO, STATUS, DATAIN' +
+        'ATIVO, '
+      '  BARRAS, PRINCIPIOATIVO, APLICACAO, OBS, VENDA'
+      'FROM PRODUTOS'
+      'WHERE CODPRO = :CODPRO')
+    Left = 96
+    Top = 224
+  end
+  object SQLFotosProd: TFDQuery
+    Active = True
+    CachedUpdates = True
+    MasterSource = DSFoto_Produtos
+    MasterFields = 'CODPRO'
+    DetailFields = 'CODPRO'
+    Connection = BaseFoto
+    UpdateObject = UPFotosProd
+    SQL.Strings = (
+      'select * from ProdFoto'
+      'where codpro=:codpro')
+    Left = 184
+    Top = 112
+    ParamData = <
+      item
+        Name = 'CODPRO'
+        DataType = ftInteger
+        ParamType = ptInput
+      end>
+  end
+  object UPFotosProd: TFDUpdateSQL
+    Connection = BaseFoto
+    InsertSQL.Strings = (
+      'INSERT INTO PRODFOTO'
+      '(CODPRO, SEQ, IMAGEM)'
+      'VALUES (:NEW_CODPRO, :NEW_SEQ, :NEW_IMAGEM)')
+    ModifySQL.Strings = (
+      'UPDATE PRODFOTO'
+      'SET CODPRO = :NEW_CODPRO, SEQ = :NEW_SEQ, IMAGEM = :NEW_IMAGEM'
+      'WHERE CODPRO = :OLD_CODPRO AND SEQ = :OLD_SEQ')
+    DeleteSQL.Strings = (
+      'DELETE FROM PRODFOTO'
+      'WHERE CODPRO = :OLD_CODPRO AND SEQ = :OLD_SEQ')
+    FetchRowSQL.Strings = (
+      'SELECT CODPRO, SEQ, IMAGEM'
+      'FROM PRODFOTO'
+      'WHERE CODPRO = :CODPRO AND SEQ = :SEQ')
+    Left = 232
+    Top = 112
+  end
+  object DSFoto_Produtos: TDataSource
+    DataSet = SQLProdutos
+    Left = 288
+    Top = 112
+  end
+  object BaseFoto: TFDConnection
+    Params.Strings = (
+      'Database=C:\CasaVacinas\Database\DB_PRODUTOS.FDB'
+      'User_Name=SYSDBA'
+      'Password=masterkey'
+      'DriverID=FB')
+    Connected = True
+    LoginPrompt = False
+    Left = 176
+    Top = 24
+  end
+end

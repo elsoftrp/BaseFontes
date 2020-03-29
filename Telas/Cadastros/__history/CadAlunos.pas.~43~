@@ -1,0 +1,436 @@
+unit CadAlunos;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, 
+  Dialogs, ModeloDiretoDac, Menus, rxSpeedBar, StdCtrls, Buttons, RXCtrls,
+  ExtCtrls, Mask, DBCtrls, rxToolEdit, RXDBCtrl, Grids, DBGrids, DB, DBClient,
+  ExtDlgs, ComCtrls, System.Actions, Vcl.ActnList, uLib, uAcoes,
+  Vcl.PlatformDefaultStyleActnCtrls, Vcl.ActnPopup, Vcl.ImgList,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param,
+  FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
+  FireDAC.Stan.Async, FireDAC.DApt, FireDAC.Comp.DataSet, FireDAC.Comp.Client;
+
+type
+  TfrmCadAlunos = class(TfrmModeloDiretoDac)
+    Label1: TLabel;
+    DBEdit1: TDBEdit;
+    Label2: TLabel;
+    Label3: TLabel;
+    DBEdit3: TDBEdit;
+    Label4: TLabel;
+    DBEdit4: TDBEdit;
+    Label5: TLabel;
+    DBEdit5: TDBEdit;
+    Label6: TLabel;
+    DBEdit6: TDBEdit;
+    Label7: TLabel;
+    DBEdit7: TDBEdit;
+    Label8: TLabel;
+    DBEdit8: TDBEdit;
+    Label9: TLabel;
+    DBEdit9: TDBEdit;
+    Label10: TLabel;
+    DBEdit10: TDBEdit;
+    Label11: TLabel;
+    DBEdit11: TDBEdit;
+    Label12: TLabel;
+    DBEdit12: TDBEdit;
+    Label13: TLabel;
+    DBEdit13: TDBEdit;
+    Label15: TLabel;
+    Label17: TLabel;
+    DBEdit17: TDBEdit;
+    Label18: TLabel;
+    Label19: TLabel;
+    DBEdit19: TDBEdit;
+    DBDateEdit1: TDBDateEdit;
+    DBDateEdit2: TDBDateEdit;
+    DBDateEdit3: TDBDateEdit;
+    DBRadioGroup1: TDBRadioGroup;
+    DBRadioGroup2: TDBRadioGroup;
+    Bevel1: TBevel;
+    Bevel2: TBevel;
+    DBText1: TDBText;
+    DBText2: TDBText;
+    Bevel3: TBevel;
+    DBText3: TDBText;
+    Bevel4: TBevel;
+    btnFoto: TSpeedButton;
+    Image1: TImage;
+    btnExcluirFoto: TSpeedButton;
+    Open: TOpenPictureDialog;
+    Panel2: TPanel;
+    Paginas: TPageControl;
+    Aulas: TTabSheet;
+    DBGrid1: TDBGrid;
+    Parametros: TTabSheet;
+    Label14: TLabel;
+    DBEdit2: TDBEdit;
+    Label16: TLabel;
+    DBEdit14: TDBEdit;
+    Label20: TLabel;
+    DBEdit15: TDBEdit;
+    Label21: TLabel;
+    DBEdit16: TDBEdit;
+    Horarios: TTabSheet;
+    DBEdit18: TDBEdit;
+    DBEdit20: TDBEdit;
+    DBEdit21: TDBEdit;
+    DBEdit22: TDBEdit;
+    DBEdit23: TDBEdit;
+    DBEdit24: TDBEdit;
+    Label22: TLabel;
+    Label25: TLabel;
+    Label23: TLabel;
+    Label24: TLabel;
+    Label26: TLabel;
+    Label27: TLabel;
+    Bevel5: TBevel;
+    DBText4: TDBText;
+    Panel5: TPanel;
+    SpeedButton6: TSpeedButton;
+    SpeedButton9: TSpeedButton;
+    SpeedButton10: TSpeedButton;
+    Panel6: TPanel;
+    ActionList2: TActionList;
+    acIncluirI: TAction;
+    acAlterarI: TAction;
+    acExcluirI: TAction;
+    ImageList2: TImageList;
+    DSI: TDataSource;
+    procedure FormShow(Sender: TObject);
+    procedure DBEdit11Exit(Sender: TObject);
+    procedure DBEdit19Exit(Sender: TObject);
+    procedure btnFotoClick(Sender: TObject);
+    procedure btnExcluirFotoClick(Sender: TObject);
+    procedure DBEdit4Exit(Sender: TObject);
+    procedure DBEdit4KeyPress(Sender: TObject; var Key: Char);
+    procedure DBEdit18KeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure DBEdit20KeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure DBEdit21KeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure DBEdit22KeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure DBEdit23KeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure DBEdit24KeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure DBEdit3Exit(Sender: TObject);
+    procedure DBEdit15KeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure acIncluirIExecute(Sender: TObject);
+    procedure acAlterarIExecute(Sender: TObject);
+    procedure acExcluirIExecute(Sender: TObject);
+  private
+    vQueryI, vQueryF: TFDQuery;
+    FSeq :Integer;
+    procedure GetIdSeq;
+    { Private declarations }
+  public
+    { Public declarations }
+  protected
+    procedure ComplementoSaidaCampoChave; override;
+    procedure ComplementoNaoIncluirSaidaCampoChave; override;
+    procedure Liberarbtn; override;
+    procedure doGravaDataSets; override;
+    procedure doFecharDataSets(erro: Boolean = False; cancel: Boolean = False); override;
+
+  end;
+
+var
+  frmCadAlunos: TfrmCadAlunos;
+
+implementation
+
+uses
+  DataModulo,  ItemsAula, Funcoes;
+
+{$R *.dfm}
+
+procedure TfrmCadAlunos.FormShow(Sender: TObject);
+begin
+  FConnection := DM.DataBase;
+  vQueryDac   := DM.SQLAlunos;
+  vQueryI     := DM.SQLItemsAula;
+  vQueryF     := DM.SQLFotos;
+  FCampoChave := 'CodAluno';
+  FNomeTabela := 'Alunos';
+  FFocoI := DBEdit1;
+  FFocoA := DBEdit1;
+  inherited;
+end;
+
+procedure TfrmCadAlunos.GetIdSeq;
+begin
+  if not vQueryI.IsEmpty then
+  begin
+    vQueryI.First;
+    vQueryI.Last;
+    FSeq := vQueryI.FieldByName('Seq').AsInteger+1;
+    vQueryI.First;
+  end
+  else
+    FSeq := 1;
+end;
+
+procedure TfrmCadAlunos.Liberarbtn;
+begin
+  if (vQuerydac.State = DsEdit) or (vQuerydac.State = DsInsert) then
+  begin
+    acIncluirI.Enabled   := True;
+    acAlterarI.Enabled   := True;
+    acExcluirI.Enabled   := True;
+  end
+  else
+  begin
+    acIncluirI.Enabled   := False;
+    acAlterarI.Enabled   := False;
+    acExcluirI.Enabled   := False;
+  end;
+  inherited;
+end;
+
+procedure TfrmCadAlunos.DBEdit11Exit(Sender: TObject);
+begin
+  if (btnCancelar.Focused) then exit;
+  if (Sender as TDBEdit).Text = '' then exit;
+  if not FSeek.Seek('Cidades',1,['CodCidade'],[(Sender as TDBEdit).Text]) then
+  begin
+    TLib.Mensagem('Aviso','Cidade não encontrada.','!');
+    (Sender as TDBEdit).SetFocus;
+    exit;
+  end;
+  vQueryDac.FieldByName('Cidade').asString := FSeek.Qry.FieldByName('Cidade').asString;
+  vQueryDac.FieldByName('Estado').asString := FSeek.Qry.FieldByName('Estado').asString;
+end;
+
+procedure TfrmCadAlunos.DBEdit19Exit(Sender: TObject);
+begin
+  if (btnCancelar.Focused) then exit;
+  if (Sender as TDBEdit).Text = '' then
+  begin
+  TLib.Mensagem('Aviso','Tipo tem que ser informado.','!');
+  (Sender as TDBEdit).SetFocus;
+  exit;
+  end;
+  if not FSeek.Seek('Categorias',1,['CodCat'],[(Sender as TDBEdit).Text]) then
+  begin
+  TLib.Mensagem('Aviso','Tipo não encontrado.','!');
+  (Sender as TDBEdit).SetFocus;
+  exit;
+  end;
+  vQueryDac.FieldByName('DesCat').asString := FSeek.Qry.FieldByName('DesCat').asString;
+end;
+
+procedure TfrmCadAlunos.acAlterarIExecute(Sender: TObject);
+begin
+  frmItemsAula := TfrmItemsAula.Create(Self, 0, 'seq', aAlterar);
+  try
+    frmItemsAula.ShowModal;
+  finally
+    frmItemsAula.Release;
+  end;
+end;
+
+procedure TfrmCadAlunos.acExcluirIExecute(Sender: TObject);
+begin
+  if TLib.Mensagem(vp,'Deseja excluir Aula?','?')=IdYes then
+  begin
+    vQueryI.Delete;
+  end;
+end;
+
+procedure TfrmCadAlunos.acIncluirIExecute(Sender: TObject);
+begin
+  GetIdSeq;
+  vQueryI.Append;
+  frmItemsAula := TfrmItemsAula.Create(Self, vQueryDac.FieldByName(FCampoChave).asInteger, 'seq', aIncluir);
+  try
+    frmItemsAula.ShowModal;
+  finally
+    frmItemsAula.Release;
+  end;
+end;
+
+procedure TfrmCadAlunos.btnFotoClick(Sender: TObject);
+begin
+  {if Open.Execute then
+  begin
+   if vStatus = 'I' then
+      vQueryF.Insert
+   else if vStatus = 'A' then
+      vQueryF.Edit;
+   Image1.Picture.LoadFromFile(Open.FileName);
+   vQueryF.FieldByName(vCampoChave).asInteger := vQueryDac.FieldByName(vCampoChave).asInteger;
+   DM.CDSFotosFOTO.LoadFromFile(Open.FileName);
+   vQueryF.Post;
+  end;}
+end;
+
+procedure TfrmCadAlunos.ComplementoNaoIncluirSaidaCampoChave;
+begin
+  vQueryI.Open;
+  vQueryF.Open;
+end;
+
+procedure TfrmCadAlunos.ComplementoSaidaCampoChave;
+begin
+  FSeq := 0;
+  vQuerydac.FieldByName('DataCad').asDateTime   := FDireitos.DataHoje;
+  //vQuerydac.FieldByName('Inativo').asboolean    := False;
+  vQueryI.Open;
+  vQueryF.Open;
+end;
+
+procedure TfrmCadAlunos.btnExcluirFotoClick(Sender: TObject);
+begin
+  {if TLib.Mensagem(vp,'Deseja Excluir foto deste Associado.?','?')=idYes  then
+  begin
+    if not DM.SqlFotos.IsEmpty then
+    begin
+      vQueryF.Delete;
+      Image1.Picture.Assign(nil);
+    end
+  end;}
+end;
+
+procedure TfrmCadAlunos.DBEdit4Exit(Sender: TObject);
+begin
+  if (btnCancelar.Focused) then exit;
+  if (Sender as TDBEdit).Text = '' then  exit;
+  if not TLib.FCgcCpf((Sender as TDBEdit).Text) then
+  begin
+    (Sender as TDBEdit).SetFocus;
+    exit;
+  end;
+  if FSeek.Seek(FNomeTabela,1,['CPF'],[(Sender as TDBEdit).Text]) then
+  begin
+    if FSeek.Qry.FieldByName(FCampoChave).asInteger = vQueryDac.FieldByname(FCampoChave).asInteger then
+      exit
+    else
+    begin
+      TLib.Mensagem('Aviso','CPF já Cadastrado.','!');
+      (Sender as TDBEdit).SetFocus;
+      exit;
+    end;
+  end;
+end;
+
+procedure TfrmCadAlunos.DBEdit4KeyPress(Sender: TObject; var Key: Char);
+begin
+  if not (Key in ['0'..'9',#8,#3,#22]) then
+    key := #0;
+end;
+
+procedure TfrmCadAlunos.doFecharDataSets(erro, cancel: Boolean);
+begin
+  if erro then
+  begin
+    vQueryI.Cancel;
+    vQueryF.Cancel;
+  end;
+  if (not cancel) and (FAcao in [aIncluir, aAlterar, aBaixar]) then
+  begin
+    vQueryI.CommitUpdates;
+    vQueryF.CommitUpdates;
+  end;
+  vQueryI.Close;
+  vQueryF.Close;
+end;
+
+procedure TfrmCadAlunos.doGravaDataSets;
+begin
+  if FAcao in[aIncluir, aAlterar, aBaixar] then
+  begin
+    vQueryI.ApplyUpdates;
+    vQueryF.ApplyUpdates;
+  end
+  else if FAcao = aExcluir then
+  begin
+    vQueryI.First;
+    while not vQueryI.Eof do
+    begin
+      vQueryI.Delete;
+    end;
+    vQueryI.ApplyUpdates;
+    //
+    vQueryF.First;
+    while not vQueryF.Eof do
+    begin
+      vQueryF.Delete;
+    end;
+    vQueryF.ApplyUpdates;
+  end;
+end;
+
+procedure TfrmCadAlunos.DBEdit18KeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if Key = vk_back then
+    vQueryDac.FieldByName('Ent1').Clear;
+end;
+
+procedure TfrmCadAlunos.DBEdit20KeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if Key = vk_back then
+    vQueryDac.FieldByName('Sai1').Clear;
+end;
+
+procedure TfrmCadAlunos.DBEdit21KeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if Key = vk_back then
+    vQueryDac.FieldByName('Ent2').Clear;
+end;
+
+procedure TfrmCadAlunos.DBEdit22KeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if Key = vk_back then
+    vQueryDac.FieldByName('Sai2').Clear;
+end;
+
+procedure TfrmCadAlunos.DBEdit23KeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if Key = vk_back then
+    vQueryDac.FieldByName('Ent3').Clear;
+end;
+
+procedure TfrmCadAlunos.DBEdit24KeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if Key = vk_back then
+    vQueryDac.FieldByName('Sai3').Clear;
+end;
+
+procedure TfrmCadAlunos.DBEdit3Exit(Sender: TObject);
+begin
+  if (btnCancelar.Focused) then exit;
+  if (Sender as TDBEdit).Text = '' then Exit;
+  if FSeek.Seek(FNomeTabela,1,['Cartao'],[(Sender as TDBEdit).Text]) then
+  begin
+    if FSeek.Qry.FieldByName(FCampoChave).asInteger = vQueryDac.FieldByname(FCampoChave).asInteger then
+      exit
+    else
+    begin
+      TLib.Mensagem('Aviso','Cartão já Cadastrado para outro Aluno.','!');
+      (Sender as TDBEdit).SetFocus;
+      exit;
+    end;
+  end;
+end;
+
+procedure TfrmCadAlunos.DBEdit15KeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if Key = vk_back then
+    vQueryDac.FieldByName('LimiteEnt').Clear;
+end;
+
+end.

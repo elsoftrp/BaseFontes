@@ -1,0 +1,362 @@
+object DMReport: TDMReport
+  OldCreateOrder = False
+  Height = 580
+  Width = 475
+  object frxReport1: TfrxReport
+    Version = '4.15.10'
+    DotMatrixReport = False
+    IniFile = '\Software\Fast Reports'
+    PreviewOptions.Buttons = [pbPrint, pbLoad, pbSave, pbExport, pbZoom, pbFind, pbOutline, pbPageSetup, pbTools, pbEdit, pbNavigator, pbExportQuick]
+    PreviewOptions.Zoom = 1.000000000000000000
+    PrintOptions.Printer = 'Default'
+    PrintOptions.PrintOnSheet = 0
+    ReportOptions.CreateDate = 42610.614975821760000000
+    ReportOptions.LastChange = 42610.614975821760000000
+    ScriptLanguage = 'PascalScript'
+    ScriptText.Strings = (
+      'begin'
+      ''
+      'end.')
+    Left = 40
+    Top = 32
+    Datasets = <>
+    Variables = <>
+    Style = <>
+  end
+  object frxDesigner1: TfrxDesigner
+    DefaultScriptLanguage = 'PascalScript'
+    DefaultFont.Charset = DEFAULT_CHARSET
+    DefaultFont.Color = clWindowText
+    DefaultFont.Height = -13
+    DefaultFont.Name = 'Arial'
+    DefaultFont.Style = []
+    DefaultLeftMargin = 10.000000000000000000
+    DefaultRightMargin = 10.000000000000000000
+    DefaultTopMargin = 10.000000000000000000
+    DefaultBottomMargin = 10.000000000000000000
+    DefaultPaperSize = 9
+    DefaultOrientation = poPortrait
+    GradientEnd = 11982554
+    GradientStart = clWindow
+    TemplatesExt = 'fr3'
+    Restrictions = []
+    RTLLanguage = False
+    MemoParentFont = False
+    Left = 88
+    Top = 32
+  end
+  object frxPDFExport1: TfrxPDFExport
+    UseFileCache = True
+    ShowProgress = True
+    OverwritePrompt = False
+    DataOnly = False
+    PrintOptimized = False
+    Outline = False
+    Background = False
+    HTMLTags = True
+    Quality = 95
+    Author = 'FastReport'
+    Subject = 'FastReport PDF export'
+    ProtectionFlags = [ePrint, eModify, eCopy, eAnnot]
+    HideToolbar = False
+    HideMenubar = False
+    HideWindowUI = False
+    FitWindow = False
+    CenterWindow = False
+    PrintScaling = False
+    Left = 160
+    Top = 32
+  end
+  object frxHTMLExport1: TfrxHTMLExport
+    UseFileCache = True
+    ShowProgress = True
+    OverwritePrompt = False
+    DataOnly = False
+    FixedWidth = True
+    Background = False
+    Centered = False
+    EmptyLines = True
+    Print = False
+    PictureType = gpPNG
+    Left = 200
+    Top = 32
+  end
+  object frxXLSExport1: TfrxXLSExport
+    UseFileCache = True
+    ShowProgress = True
+    OverwritePrompt = False
+    DataOnly = False
+    ExportEMF = True
+    AsText = False
+    Background = True
+    FastExport = True
+    PageBreaks = True
+    EmptyLines = True
+    SuppressPageHeadersFooters = False
+    Left = 248
+    Top = 32
+  end
+  object frxJPEGExport1: TfrxJPEGExport
+    UseFileCache = True
+    ShowProgress = True
+    OverwritePrompt = False
+    DataOnly = False
+    Left = 296
+    Top = 32
+  end
+  object frxRTFExport1: TfrxRTFExport
+    UseFileCache = True
+    ShowProgress = True
+    OverwritePrompt = False
+    DataOnly = False
+    PictureType = gpPNG
+    Wysiwyg = True
+    Creator = 'FastReport'
+    SuppressPageHeadersFooters = False
+    HeaderFooterMode = hfText
+    AutoSize = False
+    Left = 344
+    Top = 32
+  end
+  object frxDBDataset1: TfrxDBDataset
+    UserName = 'frxDBDataset1'
+    CloseDataSource = False
+    BCDToCurrency = False
+    Left = 344
+    Top = 88
+  end
+  object FDQuery1: TFDQuery
+    Connection = DM.DataBase
+    Left = 280
+    Top = 88
+  end
+  object frxAulas: TfrxDBDataset
+    UserName = 'Aulas'
+    CloseDataSource = False
+    DataSet = SQLAulas
+    BCDToCurrency = False
+    Left = 344
+    Top = 160
+  end
+  object SQLAulas: TFDQuery
+    Connection = DM.DataBase
+    SQL.Strings = (
+      'Select * from Aulas'
+      'order by desaula')
+    Left = 280
+    Top = 160
+  end
+  object frxTipoUsuario: TfrxDBDataset
+    UserName = 'TipoUsuario'
+    CloseDataSource = False
+    DataSet = SQLTipoUsuario
+    BCDToCurrency = False
+    Left = 344
+    Top = 216
+  end
+  object SQLTipoUsuario: TFDQuery
+    Connection = DM.DataBase
+    SQL.Strings = (
+      'Select * from Categorias '
+      'order by descat')
+    Left = 280
+    Top = 216
+  end
+  object frxTipoAdicional: TfrxDBDataset
+    UserName = 'TipoAdicional'
+    CloseDataSource = False
+    DataSet = SQLTipoAdicional
+    BCDToCurrency = False
+    Left = 344
+    Top = 272
+  end
+  object SQLTipoAdicional: TFDQuery
+    Connection = DM.DataBase
+    SQL.Strings = (
+      'Select * from Eventos'
+      'order by desevento')
+    Left = 280
+    Top = 272
+  end
+  object frxAlunos: TfrxDBDataset
+    UserName = 'Alunos'
+    CloseDataSource = False
+    DataSet = SQLAlunos
+    BCDToCurrency = False
+    Left = 344
+    Top = 328
+  end
+  object SQLAlunos: TFDQuery
+    Connection = DM.DataBase
+    SQL.Strings = (
+      
+        'select a.*, c.descat, c.isento, c.professor from alunos a left o' +
+        'uter join categorias c on c.codcat=a.codcat left outer join item' +
+        'saula au on au.codaluno=a.codaluno where 1=1 '
+      'order by a.codcat, a.nome')
+    Left = 280
+    Top = 328
+  end
+  object SQLFinanceiro: TFDQuery
+    Connection = DM.DataBase
+    SQL.Strings = (
+      
+        'select f.*, a.nome, a.codcat, c.descat, c.professor, c.isento fr' +
+        'om financeiro f'
+      
+        'left outer join alunos a on a.codaluno=f.codaluno left outer joi' +
+        'n categorias c on c.codcat=a.codcat where 1=1'
+      'order by a.codcat, f.datven, a.nome')
+    Left = 280
+    Top = 384
+  end
+  object frxFinanceiro: TfrxDBDataset
+    UserName = 'Financeiro'
+    CloseDataSource = False
+    DataSet = SQLFinanceiro
+    BCDToCurrency = False
+    Left = 344
+    Top = 384
+  end
+  object frxProdutos: TfrxDBDataset
+    UserName = 'Produtos'
+    CloseDataSource = False
+    DataSet = SQLProdutos
+    BCDToCurrency = False
+    Left = 104
+    Top = 128
+  end
+  object SQLProdutos: TFDQuery
+    Connection = DM.DataBase
+    SQL.Strings = (
+      
+        'SELECT (select sum(S.Estoque) from saldoestoque S where S.codpro' +
+        '=p.codpro group by S.codpro) Saldo, '
+      'p.*, g.desGrupo'
+      'FROM Produtos p INNER JOIN Grupos g ON p.CodGrupo = g.CodGrupo '
+      'order by p.codgrupo, despro')
+    Left = 40
+    Top = 128
+  end
+  object frxRelEntradasResumido: TfrxDBDataset
+    UserName = 'EntradasResumido'
+    CloseDataSource = False
+    DataSet = SQLRelEntradasResumido
+    BCDToCurrency = False
+    Left = 104
+    Top = 192
+  end
+  object SQLRelEntradasResumido: TFDQuery
+    Connection = DM.DataBase
+    SQL.Strings = (
+      'select e.*, f.fantasiafor, f.nomfor, f.cnpjfor from entradas e'
+      'left outer join fornecedores f on f.codfor=e.codfor'
+      'order by e.datacad, e.codentrada')
+    Left = 40
+    Top = 192
+  end
+  object frxRelEntradasDetalhado: TfrxDBDataset
+    UserName = 'EntradasDetalhado'
+    CloseDataSource = False
+    DataSet = SQLRelEntradasDetalhado
+    BCDToCurrency = False
+    Left = 104
+    Top = 248
+  end
+  object SQLRelEntradasDetalhado: TFDQuery
+    Connection = DM.DataBase
+    SQL.Strings = (
+      
+        'select e.*, p.despro, i.codpro, i.qde, i.valor, i.total, i.numer' +
+        'olote, '
+      'i.datavencimento, f.fantasiafor, f.nomfor, f.cnpjfor '
+      'from entradas e'
+      'left outer join fornecedores f on f.codfor=e.codfor'
+      'left outer join entradasitens i on i.codentrada=e.codentrada'
+      'left outer join produtos p on p.codpro=i.codpro'
+      'order by e.datacad, e.codentrada, i.seq')
+    Left = 40
+    Top = 248
+  end
+  object frxVendasProdutos: TfrxDBDataset
+    UserName = 'VendasProdutos'
+    CloseDataSource = False
+    DataSet = SQLVendasProdutos
+    BCDToCurrency = False
+    Left = 104
+    Top = 312
+  end
+  object SQLVendasProdutos: TFDQuery
+    Connection = DM.DataBase
+    SQL.Strings = (
+      
+        'select i.codpro, max(pr.despro) as despro, sum(i.quantidade) as ' +
+        'qdetotal, '
+      'avg(i.prvenda) as Mediavenda, avg(i.prcompra) as mediacusto, '
+      
+        'sum(i.prvenda*i.quantidade) as totvenda, sum(i.quantidade*i.prco' +
+        'mpra) as totcusto '
+      
+        'from pedidos p left outer join pedidositens i on i.codpedido=p.c' +
+        'odpedido '
+      'left outer join produtos pr on pr.codpro=i.codpro'
+      'group by i.codpro order by qdetotal desc, despro')
+    Left = 40
+    Top = 312
+  end
+  object frxVendasResumido: TfrxDBDataset
+    UserName = 'VendasResumido'
+    CloseDataSource = False
+    DataSet = SQLVendasResumido
+    BCDToCurrency = False
+    Left = 104
+    Top = 376
+  end
+  object SQLVendasResumido: TFDQuery
+    Connection = DM.DataBase
+    SQL.Strings = (
+      
+        'select p.*, c.nomcli from pedidos p left outer join clientes c o' +
+        'n c.codcli=p.codcli')
+    Left = 40
+    Top = 376
+  end
+  object frxVendasDetalhado: TfrxDBDataset
+    UserName = 'VendasDetalhado'
+    CloseDataSource = False
+    DataSet = SQLVendasDetalhado
+    BCDToCurrency = False
+    Left = 104
+    Top = 440
+  end
+  object SQLVendasDetalhado: TFDQuery
+    Connection = DM.DataBase
+    SQL.Strings = (
+      'select p.*, c.nomcli, i.*, pr.despro'
+      
+        'from pedidos p left outer join pedidositens i on i.codpedido=p.c' +
+        'odpedido '
+      'left outer join produtos pr on pr.codpro=i.codpro '
+      'left outer join clientes c on c.codcli=p.codcli')
+    Left = 40
+    Top = 440
+  end
+  object frxClientes: TfrxDBDataset
+    UserName = 'Clientes'
+    CloseDataSource = False
+    DataSet = SQLClientes
+    BCDToCurrency = False
+    Left = 344
+    Top = 440
+  end
+  object SQLClientes: TFDQuery
+    Connection = DM.DataBase
+    SQL.Strings = (
+      'select c.*, cid.cidade, cid.estado '
+      'from clientes c '
+      'left outer join cidades cid on cid.codcidade=c.codcidcli'
+      'order by c.nomcli')
+    Left = 280
+    Top = 440
+  end
+end

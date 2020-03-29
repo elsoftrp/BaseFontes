@@ -1,0 +1,27 @@
+unit CadLaboratorios;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, ModeloDiretoDac, Data.DB,
+  System.Actions, Vcl.ActnList, Vcl.Menus, Vcl.PlatformDefaultStyleActnCtrls,
+  Vcl.ActnPopup, System.ImageList, Vcl.ImgList, Vcl.Buttons, Vcl.StdCtrls,
+  Vcl.ExtCtrls;
+
+type
+  TfrmCadLaboratorios = class(TfrmModeloDiretoDac)
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmCadLaboratorios: TfrmCadLaboratorios;
+
+implementation
+
+{$R *.dfm}
+
+end.

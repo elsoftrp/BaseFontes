@@ -1,0 +1,197 @@
+unit RelAlunos;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, ModeloRelNew, Vcl.Menus, Vcl.ImgList,  FireDAC.Comp.Client,
+  System.Actions, Vcl.ActnList, Vcl.StdCtrls, Vcl.Buttons, Vcl.ExtCtrls, uLib, uLoadFileIni;
+
+type
+  TfrmRelAlunos = class(TfrmModeloRelNew)
+    rgTipo: TRadioGroup;
+    Label19: TLabel;
+    Bevel3: TBevel;
+    CodCategoria: TEdit;
+    lblTipoUsuario: TLabel;
+    Label1: TLabel;
+    Bevel1: TBevel;
+    CodProfessor: TEdit;
+    lblProfessor: TLabel;
+    Label3: TLabel;
+    Bevel2: TBevel;
+    CodAula: TEdit;
+    lblAula: TLabel;
+    rgOrdem: TRadioGroup;
+    Niver: TGroupBox;
+    Label2: TLabel;
+    Label8: TLabel;
+    Label9: TLabel;
+    Mes: TComboBox;
+    cbDiaIni: TComboBox;
+    cbDiaFim: TComboBox;
+    rgFiltro: TRadioGroup;
+    procedure FormShow(Sender: TObject);
+    procedure CodCategoriaExit(Sender: TObject);
+    procedure CodProfessorExit(Sender: TObject);
+    procedure CodAulaExit(Sender: TObject);
+  private
+    { Private declarations }
+    procedure FastReport;
+  public
+    { Public declarations }
+  protected
+    procedure doImprimir; override;
+  end;
+
+var
+  frmRelAlunos: TfrmRelAlunos;
+
+implementation
+
+{$R *.dfm}
+
+uses DataModulo, DataReport;
+
+procedure TfrmRelAlunos.CodAulaExit(Sender: TObject);
+begin
+  if (btnFechar.Focused) then exit;
+  if (Sender as TEdit).Text = '' then begin lblAula.Caption := ''; Exit; end;
+  if not FSeek.Seek('Aulas',1,['CodAula'],[(Sender as TEdit).Text]) then
+  begin
+  TLib.Mensagem('Aviso','Aula não encontrada.','!');
+  (Sender as TEdit).SetFocus;
+  exit;
+  end;
+  lblAula.Caption := FSeek.Qry.FieldByName('DesAula').asString;
+end;
+
+procedure TfrmRelAlunos.CodCategoriaExit(Sender: TObject);
+begin
+  if (btnFechar.Focused) then exit;
+  if (Sender as TEdit).Text = '' then begin lblTipoUsuario.Caption := ''; Exit; end;
+  if not FSeek.Seek('Categorias',1,['CodCat'],[(Sender as TEdit).Text]) then
+  begin
+  TLib.Mensagem('Aviso','Tipo de usuario não encontrado.','!');
+  (Sender as TEdit).SetFocus;
+  exit;
+  end;
+  lblTipoUsuario.Caption := FSeek.Qry.FieldByName('DesCat').asString;
+end;
+
+procedure TfrmRelAlunos.CodProfessorExit(Sender: TObject);
+var
+  viCat: string;
+begin
+  if (btnFechar.Focused) then exit;
+  if (Sender as TEdit).Text = '' then begin lblProfessor.Caption :=''; Exit; end;
+  if not FSeek.Seek('Alunos',1,['CodAluno'],[(Sender as TEdit).Text]) then
+  begin
+    TLib.Mensagem('Aviso','Professor não encontrado.','E');
+    (Sender as TEdit).SetFocus;
+    exit;
+  end;
+  lblProfessor.Caption   := FSeek.Qry.FieldByName('Nome').asString;
+  viCat :=  FSeek.Qry.FieldByName('CodCat').asString;
+  if FSeek.Seek('Categorias',1,['CodCat'],[viCat]) then
+  begin
+    if FSeek.Qry.FieldByName('professor').asString <> 'S' then
+    begin
+      TLib.Mensagem('Aviso','Não é Professor.','E');
+      (Sender as TEdit).SetFocus;
+      exit;
+    end;
+  end;
+
+end;
+
+procedure TfrmRelAlunos.doImprimir;
+begin
+  FastReport();
+end;
+
+procedure TfrmRelAlunos.FastReport;
+var
+  vsSql, vsFiltro, vsRodape, vsArquivo, vsTitulo: string;
+  vQry: TFDQuery;
+begin
+  with DMReport do
+  begin
+    vsFiltro := ''; vsRodape := ''; vsSql := ''; vsTitulo := '';
+
+    vsSql := 'select a.*, c.descat, c.isento, c.professor from alunos a left outer join categorias c on c.codcat=a.codcat left outer join itemsaula au on au.codaluno=a.codaluno where 1=1 ';
+    if rgFiltro.ItemIndex = 1 then
+      vsFiltro := vsFiltro + ' and c.professor <> '+QuotedStr('S')+' '
+    else if rgFiltro.ItemIndex = 2 then
+      vsFiltro := vsFiltro + ' and c.professor = '+QuotedStr('S')+' ';
+    if Mes.Text <> '' then
+    begin
+      vsFiltro := vsFiltro+' and Month(a.DataNas) =:Mes ';
+      if (cbDiaIni.Text <> '') and (cbDiaFim.Text <> '') then
+      begin
+        vsFiltro := vsFiltro+'and (day(a.Datanas) >=:diaini and day(a.datanas) <=:diafim) ';
+      end;
+    end;
+    if CodCategoria.Text <> '' then
+      vsFiltro := vsFiltro + ' and a.codcat =:codcat ';
+    if CodProfessor.Text <> '' then
+      vsFiltro := ' and au.codprofessor =:codprofessor ';
+    if CodAula.Text <> '' then
+      vsFiltro := vsFiltro + ' and au.codaula =:codaula ';
+    if rgOrdem.ItemIndex = 0 then
+      vsRodape := vsRodape + ' a.nome, au.seq '
+    else if rgOrdem.ItemIndex = 1 then
+      vsRodape := vsRodape + ' a.codaluno, au.seq ';
+
+
+    if rgTipo.ItemIndex = 0 then
+    begin
+      vsArquivo := 'frListagemAlunosSimples.fr3';
+    end
+    else if rgTipo.ItemIndex = 1 then
+    begin
+      vsArquivo := 'frListagemAlunosCompleto.fr3';
+    end;
+    vQry := SQLAlunos;
+
+    try
+      vQry.Close;
+      vQry.SQL.Clear;
+      vQry.SQL.Add(vsSql + vsFiltro + vsRodape);
+      if Mes.Text <> '' then
+      begin
+        vQry.ParamByName('Mes').asInteger  := StrToInt(Copy(Mes.Text,1,2));
+        vsTitulo := vsTitulo + ' Aniversariantes ' + mes.Text;
+        if (cbDiaIni.Text <> '') and (cbDiaFim.Text <> '') then
+        begin
+          vQry.ParamByName('diaini').asInteger  := StrToInt(cbDiaIni.Text);
+          vQry.ParamByName('diafim').asInteger  := StrToInt(cbDiaFim.Text);
+        end;
+      end;
+      if CodCategoria.Text <> '' then
+        vQry.ParamByName('codcat').AsInteger       := StrToInt(CodCategoria.Text);
+      if codprofessor.Text <> '' then
+        vQry.ParamByName('codprofessor').AsInteger := StrToInt(codprofessor.Text);
+      if codaula.Text <> '' then
+        vQry.ParamByName('codaula').AsInteger      := StrToInt(codaula.Text);
+      vQry.Open;
+      frxReport1.LoadFromFile(TLoadFileIni.GetInstance.PathRelat+'\'+vsArquivo);
+      frxReport1.Variables.Clear;
+      frxReport1.Variables['titulo']  := QuotedStr(vsTitulo);
+      frxReport1.ShowReport();
+    finally
+      vQry.Close;
+    end;
+  end;
+
+end;
+
+procedure TfrmRelAlunos.FormShow(Sender: TObject);
+begin
+  FConnection := DM.Database;
+  FNomeTabela := 'RelAlunos';
+  inherited;
+
+end;
+
+end.

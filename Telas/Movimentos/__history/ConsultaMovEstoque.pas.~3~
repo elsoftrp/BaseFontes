@@ -1,0 +1,170 @@
+unit ConsultaMovEstoque;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,Variants,
+  Grids, DBGrids, ExtCtrls,  Db, StdCtrls, Buttons, Mask,
+  rxToolEdit, DBCtrls, Menus, AppEvnts, QuickRpt, QRCtrls,
+  FMTBcd, Provider, DBClient, SqlExpr, SimpleDS, uModelBase, MemDS, DBAccess,
+  Uni, uSeek, FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param,
+  FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
+  FireDAC.Stan.Async, FireDAC.DApt, FireDAC.Comp.DataSet, FireDAC.Comp.Client;
+
+type
+  TfrmConsultaMovEstoque = class(TfrmModelBase)
+    DataSource1: TDataSource;
+    PopupMenu1: TPopupMenu;
+    popLocalizar: TMenuItem;
+    Panel1: TPanel;
+    Panel3: TPanel;
+    DBGrid1: TDBGrid;
+    Panel2: TPanel;
+    Label2: TLabel;
+    lblProduto: TStaticText;
+    BtnOk: TBitBtn;
+    btnImprimir: TBitBtn;
+    btnCancelar: TBitBtn;
+    CodProduto: TEdit;
+    QuickRep1: TQuickRep;
+    QRBand1: TQRBand;
+    QRBand2: TQRBand;
+    QRLabel1: TQRLabel;
+    lblCodigo: TQRLabel;
+    lblNomProduto: TQRLabel;
+    QRLabel2: TQRLabel;
+    QRLabel3: TQRLabel;
+    QRLabel4: TQRLabel;
+    QRLabel5: TQRLabel;
+    QRLabel6: TQRLabel;
+    QRLabel7: TQRLabel;
+    QRDBText1: TQRDBText;
+    QRDBText2: TQRDBText;
+    QRDBText3: TQRDBText;
+    QRDBText4: TQRDBText;
+    QRDBText5: TQRDBText;
+    QRDBText6: TQRDBText;
+    QRSysData1: TQRSysData;
+    QRBand3: TQRBand;
+    QRLabel8: TQRLabel;
+    QRSysData2: TQRSysData;
+    QRShape1: TQRShape;
+    QRShape2: TQRShape;
+    QRShape3: TQRShape;
+    QRShape4: TQRShape;
+    QRShape5: TQRShape;
+    SQLMovimento: TUniQuery;
+    SQLMovimentoSequencia: TIntegerField;
+    SQLMovimentoContador: TIntegerField;
+    SQLMovimentoNumeroLote: TStringField;
+    SQLMovimentoDataVencimento: TDateTimeField;
+    SQLMovimentoData: TDateTimeField;
+    SQLMovimentoCodDoc: TStringField;
+    SQLMovimentoTipo: TStringField;
+    SQLMovimentoPrCompra: TCurrencyField;
+    SQLMovimentoPrVenda: TCurrencyField;
+    SQLMovimentoEntrada: TCurrencyField;
+    SQLMovimentoSaida: TCurrencyField;
+    SQLMovimentoSaldo: TCurrencyField;
+    FDQuery1: TFDQuery;
+    procedure BtnOkClick(Sender: TObject);
+    procedure CodProdutoExit(Sender: TObject);
+    procedure btnCancelarClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure btnImprimirClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure popLocalizarClick(Sender: TObject);
+  private
+    seek: TSeek;
+    vNomeTabela :String;
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmConsultaMovEstoque: TfrmConsultaMovEstoque;
+
+
+implementation
+
+uses Funcoes, Localizar, DMFarmacia, DMCadastro;
+
+{$R *.DFM}
+
+procedure TfrmConsultaMovEstoque.BtnOkClick(Sender: TObject);
+begin
+  SQLMovimento.Close;
+  SQLMovimento.ParamByName('CodPro').asString := CodProduto.Text;
+  SQLMovimento.Open;
+  SQLMovimento.Last;
+end;
+
+procedure TfrmConsultaMovEstoque.CodProdutoExit(Sender: TObject);
+begin
+  if (btnCancelar.Focused) then exit;
+  if Trim(CodProduto.Text) = '' then
+  begin
+    F.Mensagem('Aviso','Código do Produtoue tem que ser informado.','!');
+    CodProduto.SetFocus;
+    exit;
+  end;
+  seek := TSeek.Create(Self, DC.DataDac, False);
+  try
+    if not seek.Seek('Produtos',1,['CodProduto'],[CodProduto.Text]) then
+    begin
+      F.Mensagem('Aviso','Produto não encontrado.','E');
+      CodProduto.SetFocus;
+      exit;
+    end;
+    LblProduto.Caption:= seek.Qry.FieldByName('DesPro').asString;
+  finally
+    FreeAndNil(seek);
+  end;
+end;
+
+procedure TfrmConsultaMovEstoque.btnCancelarClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TfrmConsultaMovEstoque.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+  SQLMovimento.Close;
+  inherited;
+end;
+
+procedure TfrmConsultaMovEstoque.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  Case Key of
+    vk_Escape:btnCancelar.Click;
+  end
+end;
+
+procedure TfrmConsultaMovEstoque.btnImprimirClick(Sender: TObject);
+begin
+  //lblCodigo.Caption := CodProduto.Text;
+  //lblNomProduto.Caption := lblProduto.Caption;
+  //QuickRep1.Preview;
+end;
+
+procedure TfrmConsultaMovEstoque.FormShow(Sender: TObject);
+begin
+  vNomeTabela := 'ConsultaMovEstoque';
+end;
+
+procedure TfrmConsultaMovEstoque.popLocalizarClick(Sender: TObject);
+begin
+  try
+    if (ActiveControl is TEdit) then
+      (ActiveControl as TEdit).Text := F.FLocalizar((ActiveControl as TEdit).Name);
+  except
+    ShowMessage('Consulta não foi localizada !');
+  end;
+end;
+
+end.

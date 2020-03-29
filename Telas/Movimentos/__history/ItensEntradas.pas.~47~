@@ -1,0 +1,443 @@
+unit ItensEntradas;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,Variants,
+  ComCtrls, StdCtrls, Buttons, ExtCtrls, DBCtrls,
+  Mask,  Db,  Menus, uModelBase, DBClient, uAcoes, JvExMask, JvToolEdit,
+  JvMaskEdit, JvDBFindEdit, JvDBControls, FireDAC.Stan.Intf,
+  FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS,
+  FireDAC.Phys.Intf, FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt,
+  FireDAC.Comp.DataSet, FireDAC.Comp.Client, uLib, uLocalizar;
+
+type
+  TfrmItensEntradas = class(TfrmModelBase)
+    Panel1: TPanel;
+    Panel2: TPanel;
+    BtnOk: TBitBtn;
+    BtnCancelar: TBitBtn;
+    Label2: TLabel;
+    DBEdit2: TDBEdit;
+    PopupMenu1: TPopupMenu;
+    Localizar1: TMenuItem;
+    DataSource1: TDataSource;
+    Label1: TLabel;
+    qde: TDBEdit;
+    Label3: TLabel;
+    valor: TDBEdit;
+    Label4: TLabel;
+    DBEdit5: TDBEdit;
+    Bevel1: TBevel;
+    DBText1: TDBText;
+    grp: TGroupBox;
+    Label9: TLabel;
+    Label10: TLabel;
+    DBValEdit4: TDBEdit;
+    DBValEdit5: TDBEdit;
+    Label6: TLabel;
+    nrolote: TDBEdit;
+    Label7: TLabel;
+    datavencimento: TJvDBDateEdit;
+    Bevel3: TBevel;
+    DBText3: TDBText;
+    DBEdit4: TDBEdit;
+    Label13: TLabel;
+    Bevel4: TBevel;
+    lblprcompra: TDBText;
+    rgPerca: TDBRadioGroup;
+    procedure FormShow(Sender: TObject);
+    procedure BtnOkClick(Sender: TObject);
+    procedure BtnCancelarClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure DBEdit2Exit(Sender: TObject);
+    procedure Localizar1Click(Sender: TObject);
+    procedure qdeExit(Sender: TObject);
+    procedure valorExit(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure DBEdit4Exit(Sender: TObject);
+    procedure DBValEdit4Exit(Sender: TObject);
+    procedure DBValEdit5Exit(Sender: TObject);
+  private
+    { Private declarations }
+    vQuerySql: TFDQuery;
+    FAcao: TAcao;
+    FCodigo: Integer;
+    procedure doCalculaTotal;
+    procedure doStatusPrCompra;
+    procedure Atualiza(campo: string);
+    function SaldoEstoque(Codigo: Integer): Double;
+  public
+    { Public declarations }
+    constructor Create(AOwer: TComponent; Codigo: Variant; Acao: TAcao);
+  end;
+
+var
+  frmItensEntradas: TfrmItensEntradas;
+
+implementation
+
+uses Funcoes, uSeek, DataModulo, EscolheLote;
+
+
+{$R *.DFM}
+
+procedure TfrmItensEntradas.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+  if (vQuerySql.state = dsEdit) or (vQuerySql.state = dsInsert) then
+  begin
+    try
+      vQuerySql.Cancel;
+    except
+    end;
+  end
+end;
+
+procedure TfrmItensEntradas.FormCreate(Sender: TObject);
+begin
+  vQuerySql := DM.SQLItensEntradas;
+end;
+
+procedure TfrmItensEntradas.FormShow(Sender: TObject);
+begin
+  BtnOk.Visible       := False;
+  BtnCancelar.Visible := False;
+  BtnCancelar.Caption := '&Cancelar';
+  if FAcao = aIncluir then
+  begin
+    BtnOk.Visible       := True;
+    BtnCancelar.Visible := True;
+    DBEdit2.SetFocus;
+  end
+  else if FAcao = aAlterar then
+  begin
+    qde.SetFocus;
+    DBEdit2.Enabled     := False;
+    BtnOk.Visible       := True;
+    BtnCancelar.Visible := True;
+  end
+  else if (FAcao = aConsultar) then
+  begin
+    BtnCancelar.Caption := ' &Fechar';
+    BtnCancelar.Visible := True;
+    BtnCancelar.SetFocus;
+    Panel1.Enabled      := False;
+  end;
+end;
+
+procedure TfrmItensEntradas.BtnOkClick(Sender: TObject);
+var
+  x:Integer;
+begin
+  if vQuerySql.FieldByName('Qde').AsInteger <= 0 then
+  begin
+    tlib.Mensagem('Aviso','Digite a quantidade','!');
+    qde.SetFocus;
+    Exit;
+  end;
+  if vQuerySql.FieldByName('Valor').AsCurrency <= 0 then
+  begin
+    tlib.Mensagem('Aviso','Digite o Valor Unitário','!');
+    valor.SetFocus;
+    Exit;
+  end;
+
+  if (vQuerySql.State = dsInsert) or (vQuerySql.State = dsEdit) then
+  begin
+    for x:=0 to vQuerySql.FieldCount -1 do
+    begin
+      if vQuerySql.Fields[x].required then
+      begin
+        if vQuerySql.Fields[x].AsString= '' then
+        begin
+          MessageDlg(Format('O Campo  "%s"  precisa ser prenchido.',[vQuerySql.Fields[x].DisplayLabel]),mtError,[mbOk],0);
+          vQuerySql.Fields[x].FocusControl;
+          exit;
+        end;
+      end;
+    end;
+  end;
+  if FAcao = aIncluir then
+  begin
+    vQuerySql.FieldByName('Seq').AsInteger := FCodigo;
+    Inc(FCodigo);
+  end;
+  if (vQuerySql.state = dsEdit) or (vQuerySql.state = dsInsert) then
+  begin
+    vQuerySql.Post;
+  end;
+  if FAcao = aIncluir then
+  begin
+    if tlib.Mensagem('Aviso', 'Deseja Continuar incluindo Produtos','?')=idYes then
+    begin
+      vQuerySql.Append;
+      vQuerySql.FieldByName('motivoperda').AsString := '0';
+      DBEdit2.SetFocus;
+      nrolote.ReadOnly        := False;
+      datavencimento.ReadOnly := False;
+      rgPerca.Visible         := False;
+    end
+    else
+      Close;
+  end
+  else
+    Close;
+end;
+
+constructor TfrmItensEntradas.Create(AOwer: TComponent; Codigo: Variant;
+  Acao: TAcao);
+begin
+  inherited Create(AOwer);
+  FCodigo      := Codigo;
+  FAcao := Acao;
+end;
+
+procedure TfrmItensEntradas.BtnCancelarClick(Sender: TObject);
+begin
+  if (vQuerySql.state = dsEdit) or (vQuerySql.state = dsInsert) then
+  begin
+    try
+      vQuerySql.Cancel;
+      Close;
+    except
+    end;
+  end
+  else
+    Close;
+end;
+
+procedure TfrmItensEntradas.FormKeyDown(Sender: TObject;
+  var Key: Word; Shift: TShiftState);
+begin
+  case Key of
+    vk_Up: Perform(Wm_NextDlgCtl, 1, 0);
+    vk_Escape:btnCancelar.Click;
+  end
+end;
+
+procedure TfrmItensEntradas.DBEdit2Exit(Sender: TObject);
+var
+  viCodPro:String;
+  seek: TSeek;
+begin
+  if (btnCancelar.Focused) then exit;
+  if (Sender as TDBEdit).Text = '' then Exit;
+  seek := TSeek.Create(Sender, DM.Database,False);
+  try
+    if not seek.Seek('Produtos',1,['Codbarra'],[(Sender as TDBEdit).Text]) then
+    begin
+      tlib.Mensagem('Aviso','Produto não encontrado.','E');
+      (Sender as TDBEdit).SetFocus;
+      exit;
+    end;
+    if seek.Qry.FieldByName('inativo').AsBoolean = True then
+    begin
+      tlib.Mensagem('Aviso','Produto está INATIVO.','!');
+      (Sender as TDBEdit).SetFocus;
+      Exit;
+    end;
+
+    vQuerySql.FieldByName('CodPro').AsInteger        := seek.Qry.FieldByName('codPro').AsInteger;
+    vQuerySql.FieldByName('DesPro').asString         := seek.Qry.FieldByName('DesPro').asString;
+    vQuerySql.FieldByName('valor').asCurrency        := seek.Qry.FieldByName('prcompra').AsCurrency;
+    vQuerySql.FieldByName('prcompra').asCurrency     := seek.Qry.FieldByName('prcompra').AsCurrency;
+    vQuerySql.FieldByName('prcomprashow').asCurrency := seek.Qry.FieldByName('prcompra').AsCurrency;
+    vQuerySql.FieldByName('PerLucro').asCurrency     := seek.Qry.FieldByName('PrLucro').AsCurrency;
+    vQuerySql.FieldByName('PrVenda').asCurrency      := seek.Qry.FieldByName('Prvenda').AsCurrency;
+    vQuerySql.FieldByName('controlalote').asString   := seek.Qry.FieldByName('controlalote').asString;
+
+    if (DM.SQLEntradas.FieldByName('TipoEntrada').AsString = 'AS') then
+    begin
+      rgPerca.Visible := True;
+    end;
+
+  finally
+    FreeAndNil(seek);
+  end;
+end;
+
+procedure TfrmItensEntradas.DBEdit4Exit(Sender: TObject);
+begin
+  Atualiza('PRCOMPRA');
+end;
+
+procedure TfrmItensEntradas.DBValEdit4Exit(Sender: TObject);
+begin
+  Atualiza('PRLUCRO');
+end;
+
+procedure TfrmItensEntradas.DBValEdit5Exit(Sender: TObject);
+begin
+  Atualiza('PRVENDA');
+end;
+
+procedure TfrmItensEntradas.qdeExit(Sender: TObject);
+begin
+  if btncancelar.Focused then exit;
+  if qde.Field.AsCurrency <= 0 then
+  begin
+    tlib.Mensagem('Aviso','Quantidade tem que ser maior que Zero.','!');
+    qde.SetFocus;
+    exit;
+  end;
+
+  if DM.SQLEntradas.FieldByName('TipoEntrada').AsString = 'AS' then
+  begin
+    if vQuerySql.FieldByName('controlalote').asString = 'S' then
+    begin
+      nrolote.ReadOnly := True;
+      datavencimento.ReadOnly := True;
+      frmEscolheLote := TfrmEscolheLote.Create(Self, vquerysql.FieldByName('codproduto').asInteger);
+      try
+        DM.SQLEstoqueLote.close;
+        DM.SQLEstoqueLote.SQL.Clear;
+        DM.SQLEstoqueLote.SQL.Add('select p.despro, s.* from saldoestoque s left outer join produtos p on p.codpro=s.codpro '+
+                                  'where s.estoque > 0 and s.codpro =:codpro order by datavencimento');
+        DM.SQLEstoqueLote.ParamByName('codpro').AsInteger := vquerysql.FieldByName('codpro').asInteger;
+        DM.SQLEstoqueLote.Open;
+        frmEscolheLote.ShowModal;
+
+        if frmEscolheLote.ModalResult = mrOk then
+        begin
+          if vquerysql.FieldByName('qde').ascurrency > (DM.SQLEstoqueLote.FieldByName('estoque').asInteger) then
+          begin
+            tlib.Mensagem('Aviso','Quantidade Maior que do Estoque.'+#13+'VERIFIQUE','E');
+            qde.SetFocus;
+            exit;
+          end;
+          vquerysql.FieldByName('numerolote').AsString := DM.SQLEstoqueLote.FieldByName('numerolote').AsString;
+          vquerysql.FieldByName('DataVencimento').AsDateTime := DM.SQLEstoqueLote.FieldByName('DataVencimento').AsDateTime;
+        end
+        else
+        begin
+          tlib.Mensagem('Aviso','Não foi escolhido o LOTE.'+#13+'VERIFIQUE','E');
+          qde.SetFocus;
+          Exit;
+        end;
+      finally
+        DM.SQLEstoqueLote.Close;
+        //frmEscolheLote.Release;
+      end;
+    end
+    else
+    begin
+      if vquerysql.FieldByName('qde').ascurrency > SaldoEstoque(vquerysql.FieldByName('codpro').asInteger) then
+      begin
+        tlib.Mensagem('Aviso','Quantidade Maior que do Estoque.'+#13+'VERIFIQUE','E');
+        qde.SetFocus;
+        exit;
+      end;
+    end;
+  end;
+  doCalculaTotal();
+end;
+
+procedure TfrmItensEntradas.valorExit(Sender: TObject);
+begin
+  doCalculaTotal();
+  doStatusPrCompra();
+end;
+
+procedure TfrmItensEntradas.doCalculaTotal;
+begin
+  if (vQuerySql.FieldByName('Qde').AsCurrency > 0) and (vQuerySql.FieldByName('Valor').AsCurrency > 0) then
+  begin
+    vQuerySql.FieldByName('Total').AsCurrency := (vQuerySql.FieldByName('Qde').AsCurrency*vQuerySql.FieldByName('Valor').AsCurrency);
+  end;
+end;
+
+procedure TfrmItensEntradas.doStatusPrCompra;
+begin
+  if (vQuerySql.FieldByName('valor').AsCurrency > 0) then
+  begin
+    if  (vQuerySql.FieldByName('valor').AsCurrency > vQuerySql.FieldByName('prcomprashow').AsCurrency)  then
+    begin
+      vQuerySql.FieldByName('prcompra').AsCurrency := vQuerySql.FieldByName('valor').AsCurrency;
+      lblprcompra.Color := clRed;
+      lblprcompra.Font.Color := clWhite;
+    end;
+    if  (vQuerySql.FieldByName('valor').AsCurrency = vQuerySql.FieldByName('prcomprashow').AsCurrency)  then
+    begin
+      vQuerySql.FieldByName('prcompra').AsCurrency := vQuerySql.FieldByName('valor').AsCurrency;
+      lblprcompra.Color := clBtnFace;
+      lblprcompra.Font.Color := clWindowText;
+    end;
+    if  (vQuerySql.FieldByName('valor').AsCurrency < vQuerySql.FieldByName('prcomprashow').AsCurrency)  then
+    begin
+      vQuerySql.FieldByName('prcompra').AsCurrency := vQuerySql.FieldByName('prcomprashow').AsCurrency;
+      lblprcompra.Color := clGreen;
+      lblprcompra.Font.Color := clWhite;
+    end;
+  end;
+end;
+
+procedure TfrmItensEntradas.Localizar1Click(Sender: TObject);
+begin
+  if (ActiveControl is TDBEdit) then
+    (ActiveControl as TDBEdit).Field.asString := TLocalizar.Busca((ActiveControl as TDBEdit).Field.FieldName)
+  else if (ActiveControl is TEdit) then
+    (ActiveControl as TEdit).Text := TLocalizar.Busca((ActiveControl as TEdit).Name );
+end;
+
+procedure TfrmItensEntradas.Atualiza(campo: string);
+begin
+  if ((vQuerySql.State = dsEdit) or (vQuerySql.State = dsInsert)) then
+  begin
+    if campo = ('PRCOMPRA') then
+    begin
+      if (vQuerySql.FieldByName('prcompra').AsString <> '') and (vQuerySql.FieldByName('prcompra').AsCurrency > 0) then
+      begin
+        vQuerySql.FieldByName('prvenda').AsCurrency := (vQuerySql.FieldByName('prcompra').AsCurrency+((vQuerySql.FieldByName('prcompra').AsCurrency*vQuerySql.FieldByName('perlucro').AsCurrency)/100));
+      end;
+    end;
+    if campo = ('PRLUCRO') then
+    begin
+      if (vQuerySql.FieldByName('prcompra').AsString <> '') and (vQuerySql.FieldByName('prcompra').AsCurrency > 0) then
+      begin
+        vQuerySql.FieldByName('prvenda').AsCurrency := (vQuerySql.FieldByName('prcompra').AsCurrency+((vQuerySql.FieldByName('prcompra').AsCurrency*vQuerySql.FieldByName('perlucro').AsCurrency)/100));
+      end;
+    end;
+    if campo = ('PRVENDA') then
+    begin
+      if ((vQuerySql.FieldByName('prvenda').AsString <> '')  and (vQuerySql.FieldByName('prvenda').AsCurrency > 0)) and
+         ((vQuerySql.FieldByName('prcompra').AsString <> '') and (vQuerySql.FieldByName('prcompra').AsCurrency > 0)) then
+      begin
+        vQuerySql.FieldByName('perlucro').AsCurrency := (((vQuerySql.FieldByName('prvenda').AsCurrency-vQuerySql.FieldByName('prcompra').AsCurrency) / vQuerySql.FieldByName('prcompra').AsCurrency  )*100);
+      end;
+    end;
+  end;
+end;
+
+function TfrmItensEntradas.SaldoEstoque(Codigo: Integer): Double;
+var
+  Qry: TFDQuery;
+begin
+  Qry := TFDQuery.Create(Self);
+  try
+    Qry.Connection := DM.DataBase;
+    Qry.Close;
+    Qry.SQL.Add('Select SaldoEstoque from Produtos where CodPro =:CodPro and numerolote=:numerolote and datavencimento=:datavencimento  ');
+    Qry.ParamByName('CodPro').AsInteger          := Codigo;
+    Qry.ParamByName('numerolote').AsString       := '0';
+    Qry.ParamByName('datavencimento').AsDateTime := StrToDate('01/01/2000');
+    Qry.Prepare;
+    Qry.Open;
+    if not Qry.IsEmpty then
+    begin
+      Result := Qry.FieldByName('Estoque').AsInteger;
+    end
+    else
+    begin
+      Result := 0;
+    end;
+  finally
+    Qry.Close;
+    FreeAndNil(Qry);
+  end;
+end;
+
+
+end.

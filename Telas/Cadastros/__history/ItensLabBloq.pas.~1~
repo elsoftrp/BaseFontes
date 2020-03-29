@@ -1,0 +1,25 @@
+unit ItensLabBloq;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, ModeloItens, Data.DB, Vcl.Menus,
+  Vcl.StdCtrls, Vcl.Buttons, Vcl.ExtCtrls;
+
+type
+  TfrmItensLabBloq = class(TfrmModeloItens)
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  frmItensLabBloq: TfrmItensLabBloq;
+
+implementation
+
+{$R *.dfm}
+
+end.

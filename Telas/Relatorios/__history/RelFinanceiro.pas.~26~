@@ -1,0 +1,206 @@
+unit RelFinanceiro;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, ModeloRelNew, Vcl.Menus, Vcl.ImgList,
+  System.Actions, Vcl.ActnList, Vcl.StdCtrls, Vcl.Buttons, Vcl.ExtCtrls,
+  Vcl.Mask, JvExMask, JvToolEdit,  uLib, uLoadFileIni, FireDAC.Comp.Client;
+
+type
+  TfrmRelFinanceiro = class(TfrmModeloRelNew)
+    rgTipo: TRadioGroup;
+    Label1: TLabel;
+    DataIni: TJvDateEdit;
+    Label2: TLabel;
+    DataFim: TJvDateEdit;
+    Label19: TLabel;
+    Bevel3: TBevel;
+    lblTipoUsuario: TLabel;
+    CodCat: TEdit;
+    Label3: TLabel;
+    CodAula: TEdit;
+    Bevel2: TBevel;
+    lblAula: TLabel;
+    Label4: TLabel;
+    CodAluno: TEdit;
+    lblAluno: TLabel;
+    Bevel1: TBevel;
+    Label5: TLabel;
+    Bevel4: TBevel;
+    lblProfessor: TLabel;
+    CodProfessor: TEdit;
+    procedure FormShow(Sender: TObject);
+    procedure CodCatExit(Sender: TObject);
+    procedure CodAulaExit(Sender: TObject);
+    procedure CodAlunoExit(Sender: TObject);
+    procedure CodProfessorExit(Sender: TObject);
+  private
+    { Private declarations }
+    procedure FastReport;
+  public
+    { Public declarations }
+  protected
+    procedure doImprimir; override;
+  end;
+
+var
+  frmRelFinanceiro: TfrmRelFinanceiro;
+
+implementation
+
+{$R *.dfm}
+
+uses DataModulo;
+
+procedure TfrmRelFinanceiro.CodAlunoExit(Sender: TObject);
+begin
+  if (btnFechar.Focused) then exit;
+  if (Sender as TEdit).Text = '' then begin lblAluno.Caption :=''; Exit; end;
+  if not FSeek.Seek('Alunos',1,['CodAluno'],[(Sender as TEdit).Text]) then
+  begin
+    TLib.Mensagem('Aviso','Aluno não encontrado.','E');
+    (Sender as TEdit).SetFocus;
+    exit;
+  end;
+  lblAluno.Caption   := FSeek.Qry.FieldByName('Nome').asString;
+end;
+
+procedure TfrmRelFinanceiro.CodAulaExit(Sender: TObject);
+begin
+  if (btnFechar.Focused) then exit;
+  if (Sender as TEdit).Text = '' then begin lblAula.Caption := ''; Exit; end;
+  if not FSeek.Seek('Aulas',1,['CodAula'],[(Sender as TEdit).Text]) then
+  begin
+  TLib.Mensagem('Aviso','Aula não encontrada.','!');
+  (Sender as TEdit).SetFocus;
+  exit;
+  end;
+  lblAula.Caption := FSeek.Qry.FieldByName('DesAula').asString;
+end;
+
+procedure TfrmRelFinanceiro.CodCatExit(Sender: TObject);
+begin
+  if (btnFechar.Focused) then exit;
+  if (Sender as TEdit).Text = '' then begin lblTipoUsuario.Caption := ''; Exit; end;
+  if not FSeek.Seek('Categorias',1,['CodCat'],[(Sender as TEdit).Text]) then
+  begin
+  TLib.Mensagem('Aviso','Tipo de usuario não encontrado.','!');
+  (Sender as TEdit).SetFocus;
+  exit;
+  end;
+  lblTipoUsuario.Caption := FSeek.Qry.FieldByName('DesCat').asString;
+end;
+
+procedure TfrmRelFinanceiro.CodProfessorExit(Sender: TObject);
+var
+  viCat: string;
+begin
+  if (btnFechar.Focused) then exit;
+  if (Sender as TEdit).Text = '' then begin lblProfessor.Caption :=''; Exit; end;
+  if not FSeek.Seek('Alunos',1,['CodAluno'],[(Sender as TEdit).Text]) then
+  begin
+    TLib.Mensagem('Aviso','Professor não encontrado.','E');
+    (Sender as TEdit).SetFocus;
+    exit;
+  end;
+  lblProfessor.Caption   := FSeek.Qry.FieldByName('Nome').asString;
+  viCat :=  FSeek.Qry.FieldByName('CodCat').asString;
+  if FSeek.Seek('Categorias',1,['CodCat'],[viCat]) then
+  begin
+    if FSeek.Qry.FieldByName('professor').asString <> 'S' then
+    begin
+      TLib.Mensagem('Aviso','Não é Professor.','E');
+      (Sender as TEdit).SetFocus;
+      exit;
+    end;
+  end;
+end;
+
+procedure TfrmRelFinanceiro.doImprimir;
+begin
+  inherited;
+
+end;
+
+procedure TfrmRelFinanceiro.FastReport;
+var
+  vsSql, vsFiltro, vsRodape, vsArquivo, vsTitulo: string;
+  vQry: TFDQuery;
+begin
+  with DMReport do
+  begin
+    vsFiltro := ''; vsRodape := ''; vsSql := ''; vsTitulo := '';
+
+    vsSql := 'select f.*, a.nome, a.codcat, c.descat, c.professor, c.isento from financeiro f '+
+             'left outer join alunos a on a.codaluno=f.codaluno left outer join categorias c on c.codcat=a.codcat ';
+    if (CodProfessor.Text <> '') or (CodAula.Text <> '') then
+      vsSql := vsSql + ' left outer join itemsaula au on au.codaluno=a.codaluno ';
+
+    vsFiltro := vsFiltro + ' where 1=1 ';
+    if rgTipo.ItemIndex =0 then
+      vsFiltro := vsFiltro + ' and f.datpag >=:dataini and f.datpag <=:datafim '
+    else if rgTipo.ItemIndex =0 then
+      vsFiltro := vsFiltro + ' and f.datpag is null and f.datven >=:dataini and f.datven <=:datfim ';
+
+    if CodAluno.Text <> '' then
+      vsFiltro := vsFiltro + ' and a.codaluno =:codaluno ';
+    if CodCat.Text <> '' then
+      vsFiltro := vsFiltro + ' and a.codcat =:codcat ';
+    if CodProfessor.Text <> '' then
+    begin
+      vsFiltro := ' and au.codprofessor =:codprofessor ';
+      vsTitulo := vsTitulo + ' Prof. '+lblProfessor.Caption;
+    end;
+    if CodAula.Text <> '' then
+    begin
+      vsFiltro := vsFiltro + ' and au.codaula =:codaula ';
+      vsTitulo := vsTitulo + ' Aula '+lblAula.Caption;
+    end;
+    vsRodape := vsRodape + ' order by a.codcat, a.nome ';
+    if rgTipo.ItemIndex = 0 then
+    begin
+      vsRodape := vsRodape + ' ,f.datpag ';
+      vsArquivo := 'frListagemFinanceiroPago.fr3';
+    end
+    else if rgTipo.ItemIndex = 1 then
+    begin
+      vsRodape := vsRodape + ' , f.datven ';
+      vsArquivo := 'frListagemFinanceiroAberto.fr3';
+    end;
+    vQry := SQLFinanceiro;
+
+    try
+      vQry.Close;
+      vQry.SQL.Clear;
+      vQry.SQL.Add(vsSql + vsFiltro + vsRodape);
+      if codaluno.Text <> '' then
+        vQry.ParamByName('codaluno').AsInteger      := StrToInt(codaluno.Text);
+      if CodCat.Text <> '' then
+        vQry.ParamByName('codcat').AsInteger       := StrToInt(CodCat.Text);
+      if codprofessor.Text <> '' then
+        vQry.ParamByName('codprofessor').AsInteger := StrToInt(codprofessor.Text);
+      if codaula.Text <> '' then
+        vQry.ParamByName('codaula').AsInteger      := StrToInt(codaula.Text);
+      vQry.Open;
+      frxReport1.LoadFromFile(TLoadFileIni.GetInstance.PathRelat+'\'+vsArquivo);
+      frxReport1.Variables.Clear;
+      frxReport1.Variables['titulo']  := QuotedStr(vsTitulo);
+      frxReport1.ShowReport();
+    finally
+      vQry.Close;
+    end;
+  end;
+
+end;
+
+procedure TfrmRelFinanceiro.FormShow(Sender: TObject);
+begin
+  FConnection := DM.DataBase;
+  FNomeTabela := 'RelFinanceiro';
+  inherited;
+
+end;
+
+end.

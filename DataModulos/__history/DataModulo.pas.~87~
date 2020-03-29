@@ -1,0 +1,376 @@
+unit DataModulo;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  Db, FireDAC.Stan.Intf,
+  FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
+  FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys,
+  FireDAC.Phys.MSSQL, FireDAC.Phys.MSSQLDef, FireDAC.ConsoleUI.Wait,
+  FireDAC.Comp.Client, FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf,
+
+  FireDAC.DApt, FireDAC.Comp.UI, FireDAC.Phys.ODBCBase, FireDAC.Comp.DataSet,
+  FireDAC.Phys.FB, FireDAC.Phys.FBDef, FireDAC.Phys.IBBase;
+
+type
+  TDM = class(TDataModule)
+    DataBase: TFDConnection;
+    SQLProgramas: TFDQuery;
+    UPProgramas: TFDUpdateSQL;
+    SQLProgramasUsuario: TFDQuery;
+    UPProgramasUsuario: TFDUpdateSQL;
+    SQLUsuarios: TFDQuery;
+    UPUsuarios: TFDUpdateSQL;
+    Menus: TFDQuery;
+    FDGUIxWaitCursor1: TFDGUIxWaitCursor;
+    Consulta: TFDQuery;
+    SQLPU: TFDQuery;
+    FDSUsuarios_Programas: TDataSource;
+    Setup: TFDQuery;
+    UPSetup: TFDUpdateSQL;
+    FDPhysFBDriverLink1: TFDPhysFBDriverLink;
+    SqlCidades: TFDQuery;
+    UPCidades: TFDUpdateSQL;
+    SqlCidadesCODCIDADE: TIntegerField;
+    SqlCidadesCIDADE: TStringField;
+    SqlCidadesESTADO: TStringField;
+    FDUpdateSQL4: TFDUpdateSQL;
+    FDQuery4: TFDQuery;
+    UPGrupos: TFDUpdateSQL;
+    SQLGrupos: TFDQuery;
+    SQLGruposCODGRUPO: TIntegerField;
+    SQLGruposDESGRUPO: TStringField;
+    UPProdutos: TFDUpdateSQL;
+    SQLProdutos: TFDQuery;
+    SQLProdutosCODPRO: TIntegerField;
+    SQLProdutosDESPRO: TStringField;
+    SQLProdutosCODGRUPO: TIntegerField;
+    SQLProdutosINATIVO: TStringField;
+    SQLProdutosCODBARRA: TStringField;
+    SQLProdutosPRCOMPRA: TBCDField;
+    SQLProdutosPRLUCRO: TBCDField;
+    SQLProdutosPRVENDA: TBCDField;
+    SQLProdutosULTCOMPRA: TDateField;
+    SQLProdutosULTVENDA: TDateField;
+    SQLProdutosCADASTRO: TDateField;
+    SQLProdutosDESGRUPO: TStringField;
+    UPFornecedores: TFDUpdateSQL;
+    SQLFornecedores: TFDQuery;
+    SQLFornecedoresCODFOR: TIntegerField;
+    SQLFornecedoresDATACAD: TDateField;
+    SQLFornecedoresCNPJFOR: TStringField;
+    SQLFornecedoresINSESTFOR: TStringField;
+    SQLFornecedoresNOMFOR: TStringField;
+    SQLFornecedoresFANTASIAFOR: TStringField;
+    SQLFornecedoresENDFOR: TStringField;
+    SQLFornecedoresNUMFOR: TStringField;
+    SQLFornecedoresCOMPFOR: TStringField;
+    SQLFornecedoresBAIFOR: TStringField;
+    SQLFornecedoresCEPFOR: TStringField;
+    SQLFornecedoresCODCIDFOR: TIntegerField;
+    SQLFornecedoresFONEFOR: TStringField;
+    SQLFornecedoresCELFOR: TStringField;
+    SQLFornecedoresCONTATOFOR: TStringField;
+    SQLFornecedoresCIDADE: TStringField;
+    SQLFornecedoresESTADO: TStringField;
+    UPClientes: TFDUpdateSQL;
+    SQLClientes: TFDQuery;
+    SQLClientesCODCLI: TIntegerField;
+    SQLClientesNOMCLI: TStringField;
+    SQLClientesCPF: TStringField;
+    SQLClientesRG: TStringField;
+    SQLClientesENDCLI: TStringField;
+    SQLClientesBAICLI: TStringField;
+    SQLClientesCEPCLI: TStringField;
+    SQLClientesCODCIDCLI: TIntegerField;
+    SQLClientesFONCLI: TStringField;
+    SQLClientesCELCLI: TStringField;
+    SQLClientesEMAIL: TStringField;
+    SQLClientesINATIVO: TStringField;
+    SQLClientesDATACAD: TDateField;
+    SQLClientesOBS: TBlobField;
+    SQLClientesCIDADE: TStringField;
+    SQLClientesESTADO: TStringField;
+    SQLClientesNUMCLI: TStringField;
+    UPEntradas: TFDUpdateSQL;
+    SQLEntradas: TFDQuery;
+    UPItensEntradas: TFDUpdateSQL;
+    SQLItensEntradas: TFDQuery;
+    DSEntradas_ItensEntradas: TDataSource;
+    SQLItensEntradasCODENTRADA: TIntegerField;
+    SQLItensEntradasSEQ: TIntegerField;
+    SQLItensEntradasCODPRO: TIntegerField;
+    SQLItensEntradasQDE: TBCDField;
+    SQLItensEntradasVALOR: TBCDField;
+    SQLItensEntradasTOTAL: TBCDField;
+    SQLItensEntradasPRCOMPRA: TBCDField;
+    SQLItensEntradasPERLUCRO: TBCDField;
+    SQLItensEntradasPRVENDA: TBCDField;
+    SQLItensEntradasCODEAN: TStringField;
+    SQLItensEntradasNUMEROLOTE: TStringField;
+    SQLItensEntradasDATAVENCIMENTO: TDateField;
+    SQLItensEntradasMOTIVOPERDA: TStringField;
+    SQLItensEntradasDESPRO: TStringField;
+    SQLItensEntradasPRCOMPRASHOW: TBCDField;
+    SQLEntradasCODENTRADA: TIntegerField;
+    SQLEntradasDATACAD: TDateField;
+    SQLEntradasNRONOTA: TStringField;
+    SQLEntradasNROCHAVE: TStringField;
+    SQLEntradasDATANOTA: TDateField;
+    SQLEntradasCODFOR: TIntegerField;
+    SQLEntradasTOTALNOTA: TBCDField;
+    SQLEntradasTOTALPRODUTO: TBCDField;
+    SQLEntradasTIPOENTRADA: TStringField;
+    SQLEntradasOBS: TMemoField;
+    SQLEntradasBAIXA: TStringField;
+    SQLEntradasDATABAIXA: TDateField;
+    SQLEntradasNOMFOR: TStringField;
+    SQLEntradasCNPJFOR: TStringField;
+    SQLEstoqueLote: TFDQuery;
+    SQLEstoqueLoteDESPRO: TStringField;
+    SQLEstoqueLoteCODPRO: TIntegerField;
+    SQLEstoqueLoteNUMEROLOTE: TStringField;
+    SQLEstoqueLoteDATAVENCIMENTO: TDateField;
+    SQLEstoqueLoteESTOQUE: TBCDField;
+    UPPedidos: TFDUpdateSQL;
+    SQLPedidos: TFDQuery;
+    UPItensPedidos: TFDUpdateSQL;
+    SQLItensPedidos: TFDQuery;
+    DSPedidos_ItensPedidos: TDataSource;
+    SQLPedidosCODPEDIDO: TIntegerField;
+    SQLPedidosCODCLI: TIntegerField;
+    SQLPedidosNOME: TStringField;
+    SQLPedidosDATA: TDateField;
+    SQLPedidosTOTAL: TBCDField;
+    SQLPedidosABATIMENTO: TBCDField;
+    SQLPedidosTOTPRO: TBCDField;
+    SQLPedidosDINHEIRO: TBCDField;
+    SQLPedidosCARTAO: TBCDField;
+    SQLPedidosCODCARTAO: TIntegerField;
+    SQLPedidosVALE: TBCDField;
+    SQLPedidosCODVALE: TIntegerField;
+    SQLPedidosDATAVALE: TDateField;
+    SQLPedidosTROCO: TBCDField;
+    SQLPedidosDESCONTO: TBCDField;
+    SQLPedidosDESCARTAO: TStringField;
+    SQLItensPedidosCODPEDIDO: TIntegerField;
+    SQLItensPedidosSEQ: TIntegerField;
+    SQLItensPedidosCODPRO: TIntegerField;
+    SQLItensPedidosCODEAN: TStringField;
+    SQLItensPedidosPRVENDA: TBCDField;
+    SQLItensPedidosPRCOMPRA: TBCDField;
+    SQLItensPedidosQUANTIDADE: TBCDField;
+    SQLItensPedidosPRTOTAL: TBCDField;
+    SQLItensPedidosDESCONTO: TBCDField;
+    SQLItensPedidosNUMEROLOTE: TStringField;
+    SQLItensPedidosDATAVENCIMENTO: TDateField;
+    SQLItensPedidosDESPRO: TStringField;
+    SQLConsPro: TFDQuery;
+    SQLPedidosVALRESTANTE: TCurrencyField;
+    SQLProgramasUsuarioCODUSUARIO: TIntegerField;
+    SQLProgramasUsuarioCODPROGRAMA: TIntegerField;
+    SQLProgramasUsuarioBTNINCLUIR: TStringField;
+    SQLProgramasUsuarioBTNALTERAR: TStringField;
+    SQLProgramasUsuarioBTNEXCLUIR: TStringField;
+    SQLProgramasUsuarioBTNVISUALIZAR: TStringField;
+    SQLProgramasUsuarioBTNIMPRIMIR: TStringField;
+    SQLProgramasUsuarioBTNCHAVE1: TStringField;
+    SQLProgramasUsuarioBTNCHAVE2: TStringField;
+    SQLProgramasUsuarioBTNCHAVE3: TStringField;
+    SQLProgramasUsuarioBTNCHAVE4: TStringField;
+    SQLProgramasUsuarioNOMEPROGRAMA: TStringField;
+    SQLUsuariosCODUSUARIO: TIntegerField;
+    SQLUsuariosLOGIN: TStringField;
+    SQLUsuariosSENHA: TStringField;
+    SQLUsuariosNOME: TStringField;
+    SQLUsuariosTIPO: TStringField;
+    SQLUsuariosPERFIL: TStringField;
+    SQLUsuariosCODCIDADE: TIntegerField;
+    SQLUsuariosHOSTSMTP: TStringField;
+    SQLUsuariosUSUARIOCONTA: TStringField;
+    SQLUsuariosSENHACONTA: TStringField;
+    SQLUsuariosAUTENTICA: TStringField;
+    SQLUsuariosEMAIL: TStringField;
+    SQLProdutosCONTROLALOTE: TStringField;
+    procedure SQLMovCalcFields(DataSet: TDataSet);
+    procedure DataModuleCreate(Sender: TObject);
+    procedure SQLAlunosCalcFields(DataSet: TDataSet);
+    procedure SQLBxaMovCalcFields(DataSet: TDataSet);
+    procedure DataModuleDestroy(Sender: TObject);
+    procedure SQLProdutosNewRecord(DataSet: TDataSet);
+    procedure SQLEntradasNewRecord(DataSet: TDataSet);
+    procedure SQLItensEntradasNewRecord(DataSet: TDataSet);
+    procedure SQLPedidosNewRecord(DataSet: TDataSet);
+    procedure SQLItensPedidosNewRecord(DataSet: TDataSet);
+    procedure SQLPedidosCalcFields(DataSet: TDataSet);
+  private
+     e: Tfddberror;
+     FJur, FMulta: Currency;
+    { Private declarations }
+  public
+    procedure MultaJuros(multa, juros: Currency);
+    { Public declarations }
+  end;
+
+var
+  DM: TDM;
+
+implementation
+
+{%CLASSGROUP 'System.Classes.TPersistent'}
+
+uses Funcoes, uLib;
+
+{$R *.DFM}
+
+
+{ TDM }
+
+
+procedure TDM.DataModuleCreate(Sender: TObject);
+begin
+  try
+    Setup.Close;
+    Setup.ParamByName('cont').AsInteger := 1;
+    Setup.Open;
+    FMulta := Setup.FieldByName('multa').AsCurrency;
+    FJur   := Setup.FieldByName('mora').AsCurrency;
+    Setup.Close;
+  except
+    FMulta := 0;
+    FJur   := 0;
+  end;
+end;
+
+procedure TDM.DataModuleDestroy(Sender: TObject);
+begin
+  DataBase.Connected := False;
+end;
+
+procedure TDM.MultaJuros(multa, juros: Currency);
+begin
+  FMulta := multa;
+  FJur   := juros;
+end;
+
+procedure TDM.SQLAlunosCalcFields(DataSet: TDataSet);
+begin
+  if DataSet.FieldByName('datanas').AsString <> '' then
+  begin
+    DataSet.FieldByName('idade').AsInteger := TLib.idade(DataSet.FieldByName('datanas').asDateTime);
+  end;
+end;
+
+procedure TDM.SQLBxaMovCalcFields(DataSet: TDataSet);
+begin
+  if DataSet.FieldByName('DatPag').asString <> '' then
+  begin
+    if Int(DataSet.FieldByName('DatVen').asDateTime) < Int(DataSet.FieldByName('DatPag').asDateTime) then
+    begin
+      DataSet.FieldByName('DiaAtr').Value := Int(DataSet.FieldByName('DatPag').asDateTime)-Int(DataSet.FieldByName('DatVen').asDateTime);
+      if (FJur > 0) and (DataSet.FieldByName('DiaAtr').Value > 0) then
+         DataSet.FieldByName('ValJur').asCurrency := F.Rounds(((DataSet.FieldByName('ValDup').asCurrency*((FJur/30)*DataSet.FieldByName('DiaAtr').Value))/100),2);
+      if (FMulta > 0) then
+         DataSet.FieldByName('ValMul').asCurrency := F.Rounds(FMulta*DataSet.FieldByName('ValDup').asCurrency/100,2);
+      DataSet.FieldByName('ValPagar').asCurrency  := DataSet.FieldByName('ValDup').asCurrency+DataSet.FieldByName('ValJur').asCurrency+DataSet.FieldByName('ValMul').asCurrency;
+    end;
+  end;
+end;
+
+procedure TDM.SQLEntradasNewRecord(DataSet: TDataSet);
+var
+  x:Integer;
+begin
+  for x := 0 to DataSet.FieldCount-1 do
+  begin
+    if (DataSet.Fields[x].DataType = ftBCD) then
+    begin
+      DataSet.Fields[x].asCurrency := 0;
+    end;
+  end;
+end;
+
+procedure TDM.SQLItensEntradasNewRecord(DataSet: TDataSet);
+var
+  x:Integer;
+begin
+  for x := 0 to DataSet.FieldCount-1 do
+  begin
+    if (DataSet.Fields[x].DataType = ftBCD) then
+    begin
+      DataSet.Fields[x].asCurrency := 0;
+    end;
+  end;
+end;
+
+procedure TDM.SQLItensPedidosNewRecord(DataSet: TDataSet);
+var
+  x:Integer;
+begin
+  for x := 0 to DataSet.FieldCount-1 do
+  begin
+    if (DataSet.Fields[x].DataType = ftBCD) then
+    begin
+      DataSet.Fields[x].asCurrency := 0;
+    end;
+  end;
+end;
+
+procedure TDM.SQLMovCalcFields(DataSet: TDataSet);
+begin
+  if DataSet.FieldByName('DatPag').asString = '' then
+  begin
+    if (DataSet.FieldByName('DatVen').asString <> '') and (Int(DataSet.FieldByName('DatVen').asDateTime) < Int(Date)) then
+    begin
+      DataSet.FieldByName('DiaAtr').Value := Int(TLib.DataServidor(Database))-Int(DataSet.FieldByName('DatVen').asDateTime);
+      if (FJur > 0) and (DataSet.FieldByName('DiaAtr').Value > 0) then
+        DataSet.FieldByName('ValJur').asCurrency := ((DataSet.FieldByName('ValDup').asCurrency*((FJur/30)*DataSet.FieldByName('DiaAtr').Value))/100);
+      if (FMulta > 0) then
+        DataSet.FieldByName('ValMul').asCurrency  := F.Rounds(FMulta*DataSet.FieldByName('ValDup').asCurrency/100,2);
+      DataSet.FieldByName('ValPagar').asCurrency  := DataSet.FieldByName('ValDup').asCurrency+DataSet.FieldByName('ValJur').asCurrency+DataSet.FieldByName('ValMul').asCurrency;
+    end;
+  end;
+end;
+
+procedure TDM.SQLPedidosCalcFields(DataSet: TDataSet);
+begin
+  if (DataSet.FieldByName('Total').AsCurrency) >
+    (DataSet.FieldByName('Dinheiro').AsCurrency+DataSet.FieldByName('Cartao').AsCurrency+DataSet.FieldByName('Vale').AsCurrency) then
+  begin
+    DataSet.FieldByName('ValRestante').AsCurrency := DataSet.FieldByName('Total').AsCurrency -
+      (DataSet.FieldByName('Dinheiro').AsCurrency+DataSet.FieldByName('Cartao').AsCurrency+DataSet.FieldByName('Vale').AsCurrency);
+  end
+  else
+  begin
+    DataSet.FieldByName('ValRestante').AsCurrency := 0;
+  end;
+end;
+
+procedure TDM.SQLPedidosNewRecord(DataSet: TDataSet);
+var
+  x:Integer;
+begin
+  for x := 0 to DataSet.FieldCount-1 do
+  begin
+    if (DataSet.Fields[x].DataType = ftBCD) then
+    begin
+      DataSet.Fields[x].asCurrency := 0;
+    end;
+  end;
+end;
+
+procedure TDM.SQLProdutosNewRecord(DataSet: TDataSet);
+var
+  x:Integer;
+begin
+  for x := 0 to DataSet.FieldCount-1 do
+  begin
+    if (DataSet.Fields[x].DataType = ftBCD) then
+    begin
+      DataSet.Fields[x].asCurrency := 0;
+    end;
+  end;
+end;
+
+end.
